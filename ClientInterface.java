@@ -1,0 +1,7 @@
+/**
+ * ClientInterface
+ */
+public class ClientInterface {
+    
+    
+}
