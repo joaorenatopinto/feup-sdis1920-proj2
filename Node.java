@@ -27,7 +27,7 @@ public class Node {
 
     private void joinRing(Node n) {
         predecessor = null;
-        successor = n.findSuccessor(this.id);
+        //successor = n.findSuccessor(this.id);
     }
 
     /*
