@@ -1,6 +1,8 @@
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Node {
     public BigInteger id;
@@ -9,10 +11,13 @@ public class Node {
 
     Node successor;
     Node predecessor;
+    List<Node> finger_table;
 
     public Node(String ip, int port) throws NoSuchAlgorithmException {
         this.ip = ip;
         this.port = port;
+        this.finger_table = new ArrayList<>();
+
         String unhashedId = ip + ';' + Integer.toString(port);
 
         MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -21,19 +26,28 @@ public class Node {
     }
 
     private void createRing() {
-        predecessor = null;
-        successor = this;
+        this.predecessor = null;
+        this.successor = this;
     }
 
     private void joinRing(Node n) {
-        predecessor = null;
-        successor = n.findSuccessor(this.id);
+        this.predecessor = null;
+        this.successor = n.findSuccessor(this.id);
     }
 
-    /*
     public Node findSuccessor(BigInteger id) {
-        if()
-    }*/
+        if(id == this.successor.id) {
+            return successor;
+        }
+        else {
+            Node n = this.closestPreceedingNode(id);
+            return n.findSuccessor(id);
+        }
+    }
+
+    public Node closestPreceedingNode(BigInteger id) {
+        
+    }
 
     public static void main(String[] args) {
         try {
