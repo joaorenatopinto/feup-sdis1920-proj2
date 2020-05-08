@@ -1,4 +1,3 @@
-import java.lang.FdLibm.Pow;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,88 +11,203 @@ public class Node {
 
     Node successor;
     Node predecessor;
-    List<Node> finger_table;
+    Node[] finger_table;
 
-    private static int M = 49;
+    private static int M = 6;
 
-    public Node(String ip, int port) throws NoSuchAlgorithmException {
-        this.ip = ip;
-        this.port = port;
-        this.finger_table = new ArrayList<>();
-
-        String unhashedId = ip + ';' + Integer.toString(port);
-
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        byte[] messageDigest = md.digest(unhashedId.getBytes());
-        this.id = new BigInteger(1, messageDigest);
-    }
-
-    private void createRing() {
-        this.predecessor = null;
-        this.successor = this;
-    }
-
-    private void joinRing(Node n) throws NoSuchAlgorithmException {
-        this.predecessor = null;
-        this.successor = n.findSuccessor(this.id);
-    }
-
-    public Node findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
-        if( id.equals(this.id ) ) {
-            return this;
-        }
-        else if ( id.compareTo(this.id)==1 && id.compareTo(this.successor.id)==-1 ) {
-            return this.successor;
-        }
-        else {
-            return this.closestPreceedingNode(id);
-        }
-    }
-
-    // TODO rever isto
-    public Node closestPreceedingNode(BigInteger id) throws NoSuchAlgorithmException {
-        for(int i = 0; i < this.finger_table.size() i++) {
-            if( this.finger_table.get(i).id.compareTo(this.id) == 1 && (this.finger_table.get(i).id.compareTo(id)<=0  )  ) {
-                return finger_table.get(i);
-            }
-        }
-        return this;
-    }
-
-    public void stabilize() {
-        Node n = this.successor.predecessor;
-
-        if( n != null && !(this.id == n.id) && ( this.id == this.successor.id || ( n.id.compareTo(this.id)==1 && n.id.compareTo(this.successor.id)==-1 ) ) ) {
-            this.successor = n;
-            finger_table.set(0, n);
-        }
-
-        this.successor.notify(this);
-    }
-
-    public void fixFingers() {
-        for(int i = 1; i < finger_table.size(); i++) {
-            finger_table.set(i, findSuccessor( new BigInteger("" + i).add( new BigInteger("2").pow(i - 1) ) ) );
-        }
-    }
-
-    public void notify(Node n) {
-        if( this.predecessor == null || ( n.id.compareTo(this.predecessor.id)==1 && n.id.compareTo(this.id)==-1 ) ) {
-            this.predecessor = n;
-        }
-    }
-
-    public void checkPredecessor() {
-        // é preciso comunicaçao entre nodes e assim. acho que n faz sentido implementar já
-    }
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoSuchAlgorithmException {
         try {
-            Node node = new Node("193.136.33.132", 8000);
-            System.out.println(node.id.toString().length() );
+            Node node1 = new Node(1);
+            Node node2 = new Node(8);
+            Node node3 = new Node(14);
+            Node node4 = new Node(21);
+            Node node5 = new Node(32);
+            Node node6 = new Node(38);
+            Node node7 = new Node(42);
+            Node node8 = new Node(48);
+            Node node9 = new Node(51);
+            Node node10 = new Node(56);
+
+            node1.create();
+            
+            node2.join(node1);
+            node1.fixFingers();
+            node2.fixFingers();
+            node2.stabilize();
+            node2.stabilize();
+            node1.stabilize(); //
+            node2.stabilize();
+
+
+
+
+            node1.fixFingers();
+
+            for(int i = 0; i < M; i++) {
+                System.out.println(node1.finger_table[i].id);
+            }
+
+            
+
+            
+            System.out.println("Node1 successor: " + node1.successor.id);
+            System.out.println("Node1 predeccessor: " + node1.predecessor.id);
+            System.out.println("Node2 successor: " + node2.successor.id);
+            System.out.println("Node2 predeccessor: " + node2.predecessor.id);                                              
+
+
+            //node3.join(node1);
+
+
+            /*
+            node1.createRing();
+            System.out.println("Node1: " + node1.id);
+            node2.joinRing(node1);
+            System.out.println("Node2: " + node2.id);
+            node3.joinRing(node1);
+            System.out.println("Node3: " + node3.id);
+            node4.joinRing(node2);
+            System.out.println("Node4: " + node4.id);
+            node5.joinRing(node4);
+            System.out.println("Node5: " + node5.id);
+
+            node2.stabilize();
+            node3.stabilize();
+            node4.stabilize();
+            node5.stabilize();
+            node1.stabilize();
+            node1.fixFingers();
+            node2.fixFingers();
+            node3.fixFingers();
+            node4.fixFingers();
+            node5.fixFingers();
+            node1.fixFingers();
+            node2.fixFingers();
+            node3.fixFingers();
+            node4.fixFingers();
+            node5.fixFingers();
+            Node found = node5.findSuccessor(new BigInteger("45076023659839435465"));
+            System.out.println(found.id);
+            */
         } catch (NoSuchAlgorithmException e) {
             
             e.printStackTrace();
         }
     }
+
+    public Node(String ip, int port) throws NoSuchAlgorithmException {
+        this.ip = ip;
+        this.port = port;
+        this.id = getHash(ip, port);
+        this.finger_table = new Node[M];
+    }
+
+    public Node(int id) {
+        this.ip = null;
+        this.port = 0;
+        this.id = new BigInteger(Integer.toString(id));
+        this.finger_table = new Node[M];
+    }
+
+    public void create() {
+        this.predecessor = null;
+        this.successor = this;
+
+        for (int i = 0; i < M; i++) {
+            finger_table[i] = this;
+        }
+    }
+
+    public void join(Node ring_reference) throws NoSuchAlgorithmException {
+        this.successor = ring_reference.findSuccessor(this.id);
+        System.out.println("SUCCESSOR NEW NODE: " + this.successor.id);
+        this.predecessor = null;
+
+        finger_table[0] = this.successor;
+        for (int i = 1; i < finger_table.length; i++) {
+            BigInteger finger_id = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
+            if (clockwiseInclusiveBetween(finger_id, this.id, this.successor.id))
+              finger_table[i] = this.successor;
+      
+            else
+              finger_table[i] = this;
+          }
+    }
+
+    public Node findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
+        //System.out.println("~~~~~~");
+        //System.out.println("ID: " + id + " ; THIS.ID: " + this.id + " ; successor.id: "+ this.successor.id);
+        //if(this.predecessor!=null)System.out.println("Node1 predeccessor: " + this.predecessor.id);
+        //System.out.println("~~~~~~");
+        if(clockwiseInclusiveBetween(id, this.id, this.successor.id)) {
+            return this.successor;
+        }
+        else {
+            Node n = closestPrecedingNode(id);
+            //System.out.println("CPN ID: " + n.id);
+            return n.findSuccessor(id);
+        }
+    }
+
+    public Node closestPrecedingNode(BigInteger id) {
+        for(int i = M-1; i > 0; i--) {
+            
+            if(clockwiseExclusiveBetween(finger_table[i].id, this.id, id)) {
+                return finger_table[i];
+            }
+        }
+        //return this;
+        return this.successor; // assim, qd n se sabe ou a finger table está mal / desactualizada, manda-se para o sucessor para pesquisa linear
+    }
+
+    public void stabilize() {
+        Node x = this.successor.predecessor;
+
+        if(x!=null && clockwiseExclusiveBetween(x.id, this.id, this.successor.id)) {
+            this.successor = x;
+            this.finger_table[0] = this.successor;
+        }
+
+        this.successor.notify(this);
+    }
+
+    public void notify(Node n) {
+        if(this.predecessor == null || clockwiseExclusiveBetween(n.id, this.predecessor.id, this.id)) {
+            this.predecessor = n;
+        }
+    }
+
+    public void fixFingers() throws NoSuchAlgorithmException {
+        // dar fix a todos de uma só vez para não termos que estar a chamar tantas vezes. pelo menos para já (testar localmente) dá jeito
+        for(int i = M-1; i >= 1; i--) {
+            BigInteger finger_id = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
+            finger_table[i] = findSuccessor(finger_id);
+        }
+    }
+
+    public boolean clockwiseInclusiveBetween(BigInteger id, BigInteger id1, BigInteger id2) {
+        if(id2.compareTo(id1)==1) {
+            return id.compareTo(id1)==1 && id.compareTo(id2)<=0;
+        }
+        else {
+            return id.compareTo(id1)==1 || id.compareTo(id2)<=0;
+        }
+    }
+
+    public boolean clockwiseExclusiveBetween(BigInteger id, BigInteger id1, BigInteger id2) {
+        if(id2.compareTo(id1)==1) {
+            return id.compareTo(id1)==1 && id.compareTo(id2)==-1;
+        }
+        else {
+            return id.compareTo(id1)==1 || id.compareTo(id2)==-1;
+        }
+    }
+
+    private BigInteger getHash(String ip, int port) throws NoSuchAlgorithmException {
+        String unhashedId = ip + ';' + Integer.toString(port);
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        byte[] messageDigest = md.digest(unhashedId.getBytes());
+        return new BigInteger(1, messageDigest);
+    }
+
 }
