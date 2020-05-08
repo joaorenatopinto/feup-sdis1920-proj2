@@ -31,64 +31,47 @@ public class Node {
             node1.create();
             
             node2.join(node1);
-            node1.fixFingers();
-            node2.fixFingers();
             node2.stabilize();
-            node2.stabilize();
-            node1.stabilize(); //
-            node2.stabilize();
-
-
-
-
-            node1.fixFingers();
-
-            for(int i = 0; i < M; i++) {
-                System.out.println(node1.finger_table[i].id);
-            }
-
-            
-
-            
-            System.out.println("Node1 successor: " + node1.successor.id);
-            System.out.println("Node1 predeccessor: " + node1.predecessor.id);
-            System.out.println("Node2 successor: " + node2.successor.id);
-            System.out.println("Node2 predeccessor: " + node2.predecessor.id);                                              
-
-
-            //node3.join(node1);
-
-
-            /*
-            node1.createRing();
-            System.out.println("Node1: " + node1.id);
-            node2.joinRing(node1);
-            System.out.println("Node2: " + node2.id);
-            node3.joinRing(node1);
-            System.out.println("Node3: " + node3.id);
-            node4.joinRing(node2);
-            System.out.println("Node4: " + node4.id);
-            node5.joinRing(node4);
-            System.out.println("Node5: " + node5.id);
-
-            node2.stabilize();
-            node3.stabilize();
-            node4.stabilize();
-            node5.stabilize();
             node1.stabilize();
-            node1.fixFingers();
             node2.fixFingers();
-            node3.fixFingers();
-            node4.fixFingers();
-            node5.fixFingers();
             node1.fixFingers();
-            node2.fixFingers();
+            
+            node3.join(node2);
+            node3.stabilize();
+            node2.stabilize();
+            node1.stabilize();
             node3.fixFingers();
-            node4.fixFingers();
-            node5.fixFingers();
-            Node found = node5.findSuccessor(new BigInteger("45076023659839435465"));
-            System.out.println(found.id);
-            */
+            node2.fixFingers();
+            node1.fixFingers();
+
+            node10.join(node1);
+            node10.stabilize();
+            node3.stabilize();
+            node2.stabilize();
+            node1.stabilize();
+            node10.fixFingers();
+            node3.fixFingers();
+            node2.fixFingers();
+            node1.fixFingers();
+
+            node6.join(node3);
+            node6.stabilize();
+            node10.stabilize();
+            node3.stabilize();
+            node2.stabilize();
+            node1.stabilize();
+            node6.fixFingers();
+            node10.fixFingers();
+            node3.fixFingers();
+            node2.fixFingers();
+            node1.fixFingers();
+
+            System.out.println(node1);
+            System.out.println(node2);
+            System.out.println(node3);
+
+            System.out.println("Query result: " + node2.findSuccessor(new BigInteger("5")).id);
+                                            
         } catch (NoSuchAlgorithmException e) {
             
             e.printStackTrace();
@@ -120,7 +103,6 @@ public class Node {
 
     public void join(Node ring_reference) throws NoSuchAlgorithmException {
         this.successor = ring_reference.findSuccessor(this.id);
-        System.out.println("SUCCESSOR NEW NODE: " + this.successor.id);
         this.predecessor = null;
 
         finger_table[0] = this.successor;
@@ -135,16 +117,11 @@ public class Node {
     }
 
     public Node findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
-        //System.out.println("~~~~~~");
-        //System.out.println("ID: " + id + " ; THIS.ID: " + this.id + " ; successor.id: "+ this.successor.id);
-        //if(this.predecessor!=null)System.out.println("Node1 predeccessor: " + this.predecessor.id);
-        //System.out.println("~~~~~~");
         if(clockwiseInclusiveBetween(id, this.id, this.successor.id)) {
             return this.successor;
         }
         else {
             Node n = closestPrecedingNode(id);
-            //System.out.println("CPN ID: " + n.id);
             return n.findSuccessor(id);
         }
     }
@@ -157,7 +134,7 @@ public class Node {
             }
         }
         //return this;
-        return this.successor; // assim, qd n se sabe ou a finger table está mal / desactualizada, manda-se para o sucessor para pesquisa linear
+        return this.successor; // assim, qd n se sabe ou a finger table está mal / desactualizada, manda-se para o sucessor para pesquisa linear. no entanto, n está assim no paper
     }
 
     public void stabilize() {
@@ -210,4 +187,23 @@ public class Node {
         return new BigInteger(1, messageDigest);
     }
 
+    @Override
+    public String toString() {
+        String str = "~~~~~\nID: " + this.id + "\nSuccessor:";
+        if(this.successor!=null) str += this.successor.id;
+        else str += null;
+        str+="\nPredeccessor: ";
+        if(this.predecessor!=null) str += this.predecessor.id;
+        else str+=null;
+        str+="\nFinger Table: \n";
+        for(int i = 0; i<finger_table.length; i++) {
+            BigInteger finger_id = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
+            str+="N" + finger_id + ": ";
+            if(finger_table[i]!=null) str += "" + finger_table[i].id + '\n';
+            else str += "null \n";
+        }
+        str += "~~~~~";
+        return str;
+    }
+    
 }
