@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLServerSocket;
@@ -11,7 +12,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLServerSocketFactory;
 
 public class Peer {
-    static Node chordNode;
+    private Node chordNode;
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
         Peer peer = new Peer();
@@ -35,6 +36,7 @@ public class Peer {
         }
         else if(chordOption.equals("JOIN")) {
             chordNode.join(args[3], Integer.parseInt(args[4]));
+            System.out.println("dawdawdawdawda");
             init = Boolean.parseBoolean(args[5]);
         }
         else {
@@ -82,9 +84,10 @@ public class Peer {
                             out.println("Bye.");
                             clientSocket.close();
                             break;
-                        } else {
-                            System.out.println("Client: " + fromClient);
-                            out.println("Pega uma resposta estilo Afonso: ASHOEARHWHESLDSFHSOF");
+                        } 
+                        else {
+                            NodeReference node = processMessage(fromClient);
+                            out.println("CHORD SUCCESSOR " + node.ip + " " + node.port);
                         }
                     } 
                     System.out.println("Fugi");
@@ -137,4 +140,19 @@ public class Peer {
             
         }
     }
-}
+
+    public NodeReference processMessage(String msg) throws NoSuchAlgorithmException {
+        String[] msgParts = msg.split(" ");
+        NodeReference node = null;
+        if(msgParts[0].equals("CHORD")) {
+            switch(msgParts[1]) {
+                case "FINDSUCCESSOR":
+                    node = chordNode.findSuccessor(new BigInteger(msgParts[2]));
+            }
+        }
+        return node;
+    }
+}   
+
+
+
