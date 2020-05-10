@@ -9,96 +9,34 @@ public class Node {
     public String ip;
     public int port;
 
-    Node successor;
-    Node predecessor;
-    Node[] finger_table;
+    NodeReference successor;
+    NodeReference predecessor;
+    NodeReference[] finger_table;
+    NodeReference ownReference;
 
     private static int M = 6;
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-        try {
-            Node node1 = new Node(1);
-            Node node2 = new Node(8);
-            Node node3 = new Node(14);
-            Node node4 = new Node(21);
-            Node node5 = new Node(32);
-            Node node6 = new Node(38);
-            Node node7 = new Node(42);
-            Node node8 = new Node(48);
-            Node node9 = new Node(51);
-            Node node10 = new Node(56);
-
-            node1.create();
-            
-            node2.join(node1);
-            node2.stabilize();
-            node1.stabilize();
-            node2.fixFingers();
-            node1.fixFingers();
-            
-            node3.join(node2);
-            node3.stabilize();
-            node2.stabilize();
-            node1.stabilize();
-            node3.fixFingers();
-            node2.fixFingers();
-            node1.fixFingers();
-
-            node10.join(node1);
-            node10.stabilize();
-            node3.stabilize();
-            node2.stabilize();
-            node1.stabilize();
-            node10.fixFingers();
-            node3.fixFingers();
-            node2.fixFingers();
-            node1.fixFingers();
-
-            node6.join(node3);
-            node6.stabilize();
-            node10.stabilize();
-            node3.stabilize();
-            node2.stabilize();
-            node1.stabilize();
-            node6.fixFingers();
-            node10.fixFingers();
-            node3.fixFingers();
-            node2.fixFingers();
-            node1.fixFingers();
-
-            System.out.println(node1);
-            System.out.println(node2);
-            System.out.println(node3);
-            System.out.println(node10);
-
-            System.out.println("Query result: " + node2.findSuccessor(new BigInteger(args[0])).id);
-                                            
-        } catch (NoSuchAlgorithmException e) {
-            
-            e.printStackTrace();
-        }
-    }
-
-    public Node(String ip, int port) throws NoSuchAlgorithmException {
+    public Node(String ip, int port, Peer peer) throws NoSuchAlgorithmException {
         this.ip = ip;
         this.port = port;
         this.id = getHash(ip, port);
-        this.finger_table = new Node[M];
+        this.finger_table = new NodeReference[M];
+        this.ownReference = new NodeReference(ip, port);
     }
 
     public Node(int id) {
         this.ip = null;
         this.port = 0;
         this.id = new BigInteger(Integer.toString(id));
-        this.finger_table = new Node[M];
+        this.finger_table = new NodeReference[M];
     }
 
     public void create() {
         this.predecessor = null;
-        this.successor = this;
+        this.successor = this.ownReference;
 
         for (int i = 0; i < M; i++) {
-            finger_table[i] = this;
+            finger_table[i] = this.ownReference;
         }
     }
 
@@ -106,7 +44,7 @@ public class Node {
         return; // preencher depois
     }
 
-    public void join(Node ring_reference) throws NoSuchAlgorithmException {
+    public void join(NodeReference ring_reference) throws NoSuchAlgorithmException {
         this.successor = ring_reference.findSuccessor(this.id);
         this.predecessor = null;
 
@@ -117,21 +55,21 @@ public class Node {
               finger_table[i] = this.successor;
       
             else
-              finger_table[i] = this;
+              finger_table[i] = this.ownReference;
           }
     }
 
-    public Node findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
+    public NodeReference findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
         if(clockwiseInclusiveBetween(id, this.id, this.successor.id)) {
             return this.successor;
         }
         else {
-            Node n = closestPrecedingNode(id);
+            NodeReference n = closestPrecedingNode(id);
             return n.findSuccessor(id);
         }
     }
 
-    public Node closestPrecedingNode(BigInteger id) {
+    public NodeReference closestPrecedingNode(BigInteger id) {
         for(int i = M-1; i > 0; i--) {
             
             if(clockwiseExclusiveBetween(finger_table[i].id, this.id, id)) {
@@ -143,17 +81,21 @@ public class Node {
     }
 
     public void stabilize() {
-        Node x = this.successor.predecessor;
+        NodeReference x = getSuccessorPredecessor();
 
         if(x!=null && clockwiseExclusiveBetween(x.id, this.id, this.successor.id)) {
             this.successor = x;
             this.finger_table[0] = this.successor;
         }
 
-        this.successor.notify(this);
+        this.successor.notify(this.ownReference);
     }
 
-    public void notify(Node n) {
+    public NodeReference getSuccessorPredecessor() {
+        return this.successor.getPredecessor();
+    }
+
+    public void notify(NodeReference n) {
         if(this.predecessor == null || clockwiseExclusiveBetween(n.id, this.predecessor.id, this.id)) {
             this.predecessor = n;
         }

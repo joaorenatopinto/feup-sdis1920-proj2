@@ -26,7 +26,7 @@ public class Peer {
         String ipAddress = args[1];
         String chordOption = args[2];
 
-        chordNode = new Node(ipAddress, portNumber);
+        chordNode = new Node(ipAddress, portNumber, this);
 
         boolean init;
         if(chordOption.equals("CREATE")) {
@@ -66,18 +66,30 @@ public class Peer {
             try {
                 System.out.println("Waiting Connection...");
                 while (true) {
-                        SSLSocket clientSocket = (SSLSocket)serverSocket.accept();
-                        serverSocket.setNeedClientAuth(true);
-                        System.out.println("Connected.");
-                        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            
-                        //String inputLine, outputLine;
-                        System.out.println("Client: " + in.readLine());
-                        out.println("Pega uma resposta estilo Afonso: ASHOEARHWHESLDSFHSOF");
-                        out.println("Bye.");
-                        break;
-                    
+                    SSLSocket clientSocket = (SSLSocket)serverSocket.accept();
+                    serverSocket.setNeedClientAuth(true);
+                    System.out.println("Connected.");
+                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        
+                    String fromClient;
+
+                    System.out.println("Client: " + in.readLine());
+                    out.println("Pega uma resposta estilo Afonso: ASHOEARHWHESLDSFHSOF");
+
+                    while ((fromClient = in.readLine()) != null){
+                        if(fromClient.equals("Bye.")) {
+                            out.println("Bye.");
+                            clientSocket.close();
+                            break;
+                        } else {
+                            System.out.println("Client: " + fromClient);
+                            out.println("Pega uma resposta estilo Afonso: ASHOEARHWHESLDSFHSOF");
+                        }
+                    } 
+                    System.out.println("Fugi");
+                   
+                       
                 }
             } catch (IOException e) {
                 e.printStackTrace();
