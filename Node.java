@@ -69,8 +69,9 @@ public class Node {
             System.out.println(node1);
             System.out.println(node2);
             System.out.println(node3);
+            System.out.println(node10);
 
-            System.out.println("Query result: " + node2.findSuccessor(new BigInteger("5")).id);
+            System.out.println("Query result: " + node2.findSuccessor(new BigInteger(args[0])).id);
                                             
         } catch (NoSuchAlgorithmException e) {
             
@@ -163,11 +164,11 @@ public class Node {
     }
 
     public boolean clockwiseInclusiveBetween(BigInteger id, BigInteger id1, BigInteger id2) {
-        if(id2.compareTo(id1)==1) {
-            return id.compareTo(id1)==1 && id.compareTo(id2)<=0;
+        if(id2.compareTo(id1) == 1) {
+            return id.compareTo(id1) == 1 && id.compareTo(id2) <= 0;
         }
         else {
-            return id.compareTo(id1)==1 || id.compareTo(id2)<=0;
+            return id.compareTo(id1) == 1 || id.compareTo(id2) <= 0;
         }
     }
 
