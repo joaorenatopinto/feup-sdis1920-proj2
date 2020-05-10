@@ -4,13 +4,9 @@ import java.security.NoSuchAlgorithmException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
 import java.io.InputStreamReader;
-import java.util.Scanner;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.SSLServerSocketFactory;
-
 
 public class NodeReference {
     public BigInteger id;
@@ -36,7 +32,7 @@ public class NodeReference {
             PrintWriter out = new PrintWriter(Socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
 
-            String fromServer, fromUser;
+            String fromServer;
 
             out.println("CHORD FINDSUCCESSOR " + id);
             

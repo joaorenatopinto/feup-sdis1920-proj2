@@ -134,6 +134,8 @@ public class Peer {
                         out.println(fromUser);
                     }
                 }
+                myObj.close();
+                Socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -153,6 +155,3 @@ public class Peer {
         return node;
     }
 }   
-
-
-
