@@ -102,6 +102,10 @@ public class Node {
         }
     }
 
+    public void join(String ip, int port) {
+        return; // preencher depois
+    }
+
     public void join(Node ring_reference) throws NoSuchAlgorithmException {
         this.successor = ring_reference.findSuccessor(this.id);
         this.predecessor = null;
