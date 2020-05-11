@@ -68,6 +68,14 @@ public class MessageProcessor implements Runnable{
                     break;
             }
         }
+        else if(msgParts[0].equals("PROTOCOL")) {
+            switch (msgParts[1]) {
+                case "BACKUP":
+                    return "PROTOCOL BACKUP OH YEAH YEAH YEAH";
+                default:
+                    break;
+            }
+        }
         if (node != null) {
             return "CHORD NODE " + node.ip + " " + node.port;
         } else return null;

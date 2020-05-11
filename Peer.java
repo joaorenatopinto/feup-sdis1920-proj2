@@ -1,3 +1,8 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -5,6 +10,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 public class Peer {
     static public Node chordNode;
@@ -62,5 +70,35 @@ public class Peer {
         // Create task where a thread permantly is listening to the server socket and gives it to the ThreadPool
         final Runnable listener = new PeerThread(this);
         pool.execute(listener);
+    }
+
+    public static void backupFile(BigInteger fileId) throws NoSuchAlgorithmException {
+        NodeReference node = chordNode.findSuccessor(fileId);
+        SSLSocket Socket = null;  
+        try {
+            SSLSocketFactory factory =  (SSLSocketFactory)SSLSocketFactory.getDefault();
+            Socket = (SSLSocket) factory.createSocket(node.ip, node.port);  
+            
+            Socket.startHandshake();
+
+            PrintWriter out = new PrintWriter(Socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
+
+            String fromServer;
+
+            out.println("PROTOCOL BACKUP " + fileId);
+            
+           if ((fromServer = in.readLine()) != null) {
+                System.out.println("Server: " + fromServer);
+                String[] answer = fromServer.split(" ");
+            }
+            else {
+                System.out.println("DEU MERDA");
+            }
+
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }   

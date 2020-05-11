@@ -12,7 +12,7 @@ public class ClientInterface {
             PeerInterface interfaceStub = (PeerInterface) registry.lookup("Peer" + args[0]);
             switch (args[1].toUpperCase()) {
                 case "BACKUP":
-                    interfaceStub.backup();
+                    interfaceStub.backup(args[2]);
                     break;
                 case "SHUTDOWN":
                     interfaceStub.shutdown();

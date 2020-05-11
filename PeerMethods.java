@@ -1,11 +1,23 @@
 import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class PeerMethods implements PeerInterface {
-    public void backup() {
-        System.out.println("Remote method backup called.");
-
-        return;
+    public void backup(String path) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        byte[] messageDigest = md.digest(path.getBytes());
+        BigInteger pathId = new BigInteger(1, messageDigest);
+        System.out.println("Backing up file with ID: " + pathId);
+        Peer.pool.execute(new Runnable() {
+            public void run() {
+                try {
+                    Peer.backupFile(pathId);
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        });
     }
 
     public void shutdown() {
@@ -14,7 +26,7 @@ public class PeerMethods implements PeerInterface {
     }
 
     public void findSuccessorTest(BigInteger id) throws NoSuchAlgorithmException {
-        System.out.println("AIODUBNAWIOUDBAWODBNAW=ODNAWODNAWODJNAWODNAOWD");
+        System.out.println("AIODUBNAWIOUDBAWODBNAWODNAWODNAWODJNAWODNAOWD");
         NodeReference node = Peer.chordNode.findSuccessor(id);
         System.out.println("Node: " + node.ip + " " + node.port + " " + node.id);
     }
