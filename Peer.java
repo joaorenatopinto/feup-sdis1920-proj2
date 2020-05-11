@@ -90,7 +90,7 @@ public class Peer {
             
            if ((fromServer = in.readLine()) != null) {
                 System.out.println("Server: " + fromServer);
-                String[] answer = fromServer.split(" ");
+                //String[] answer = fromServer.split(" ");
             }
             else {
                 System.out.println("DEU MERDA");
