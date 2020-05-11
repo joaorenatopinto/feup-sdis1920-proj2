@@ -1,10 +1,19 @@
-/**
- * ClientInterface
- */
-public class ClientInterface {
+import java.rmi.registry.LocateRegistry; 
+import java.rmi.registry.Registry;  
 
+public class ClientInterface {
+    //Usage: java ClientInterface ID (ID do Peer a chamar)
     public static void main(String[] args) {
-        System.out.println("Olá Afonsinho");
-        return;
+        try {
+            // Getting the registry 
+            Registry registry = LocateRegistry.getRegistry(null);
+
+            PeerInterface interfaceStub = (PeerInterface) registry.lookup("Peer" + args[0]);
+
+            interfaceStub.backup();
+        } catch (Exception e) {
+            System.err.println("Client Interface exception: " + e.toString()); 
+            e.printStackTrace(); 
+        }
     }
 }

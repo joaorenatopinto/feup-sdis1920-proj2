@@ -12,7 +12,7 @@ public class Node {
     NodeReference[] finger_table;
     NodeReference ownReference;
 
-    private static int M = 6;
+    private static int M = 160;
 
     public Node(String ip, int port, Peer peer) throws NoSuchAlgorithmException {
         this.ip = ip;
@@ -30,6 +30,8 @@ public class Node {
     }
 
     public void create() {
+        System.out.println("CREATOR ID: " + this.id);
+
         this.predecessor = null;
         this.successor = this.ownReference;
 
@@ -38,8 +40,22 @@ public class Node {
         }
     }
 
-    public void join(String ip, int port) {
-        return; // preencher depois
+    public void join(String ip, int port) throws NoSuchAlgorithmException {
+        System.out.println("JOINER ID: " + this.id);
+        this.successor = new NodeReference(ip, port).findSuccessor(this.id);
+        this.predecessor = null;
+        
+        finger_table[0] = this.successor;
+        for (int i = 1; i < finger_table.length; i++) {
+            BigInteger finger_id = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
+            if (clockwiseInclusiveBetween(finger_id, this.id, this.successor.id))
+              finger_table[i] = this.successor;
+      
+            else
+              finger_table[i] = this.ownReference;
+          }
+
+        System.out.println("SUCCESSOR: " + this.successor.id);
     }
 
     public void join(NodeReference ring_reference) throws NoSuchAlgorithmException {
@@ -63,6 +79,7 @@ public class Node {
         }
         else {
             NodeReference n = closestPrecedingNode(id);
+            if(n.id.equals(this.id)) return this.ownReference;
             return n.findSuccessor(id);
         }
     }
