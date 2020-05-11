@@ -9,8 +9,16 @@ public class ClientInterface {
             Registry registry = LocateRegistry.getRegistry(null);
 
             PeerInterface interfaceStub = (PeerInterface) registry.lookup("Peer" + args[0]);
-
-            interfaceStub.backup();
+            switch (args[1]) {
+                case "BACKUP":
+                    interfaceStub.backup();
+                    break;
+                case "SHUTDOWN":
+                    interfaceStub.shutdown();
+                default:
+                    break;
+            }
+            
         } catch (Exception e) {
             System.err.println("Client Interface exception: " + e.toString()); 
             e.printStackTrace(); 

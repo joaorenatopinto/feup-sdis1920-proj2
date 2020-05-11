@@ -82,15 +82,17 @@ public class Peer {
                 System.out.println("Waiting Connection...");
                 while (true) {
                     SSLSocket clientSocket = (SSLSocket)serverSocket.accept();
-                    //serverSocket.setNeedClientAuth(true);
                     System.out.println("Recebi cenas");
                     Runnable task = new MessageProcessor(clientSocket);
                     pool.execute(task);
 
                     if(shutdown){
+                        System.out.println("Closing all sockets and threadPool...");
                         pool.shutdown();
                         clientSocket.close();
                         serverSocket.close();
+                        System.out.println("Shuting down...");
+                        System.out.println("Bye.");
                         break;
                     }
                 }

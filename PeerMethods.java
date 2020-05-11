@@ -3,4 +3,7 @@ public class PeerMethods implements PeerInterface {
         System.out.println("Remote method backup called.");
         return;
     }
+    public void shutdown() {
+        Peer.shutdown = true;
+    }
 }
