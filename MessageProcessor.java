@@ -34,11 +34,12 @@ public class MessageProcessor implements Runnable{
                     clientSocket.close();
                     break;
                 } 
-                else {
-                    NodeReference node = processMessage(fromClient); 
-                    String answer = "CHORD SUCCESSOR " + node.ip + " " + node.port;
-                    System.out.println("YOU: " + answer);
-                    out.println(answer);
+                else { 
+                    String answer = processMessage(fromClient); 
+                    if (answer != null) {
+                        System.out.println("YOU: " + answer);
+                        out.println(answer);
+                    }   
                     clientSocket.close();
                     break;
                 }
@@ -50,15 +51,25 @@ public class MessageProcessor implements Runnable{
         
     }
 
-    public NodeReference processMessage(String msg) throws NoSuchAlgorithmException {
+    public String processMessage(String msg) throws NoSuchAlgorithmException {
         String[] msgParts = msg.split(" ");
         NodeReference node = null;
         if(msgParts[0].equals("CHORD")) {
             switch(msgParts[1]) {
                 case "FINDSUCCESSOR":
                     node = Peer.chordNode.findSuccessor(new BigInteger(msgParts[2]));
+                    break;
+                case "NOTIFY":
+                    NodeReference notifier = new NodeReference(msgParts[2], Integer.parseInt(msgParts[3]));
+                    Peer.chordNode.notify(notifier);
+                    break;
+                case "GETPREDECESSOR":
+                    node = Peer.chordNode.predecessor;
+                    break;
             }
         }
-        return node;
+        if (node != null) {
+            return "CHORD NODE " + node.ip + " " + node.port;
+        } else return null;
     }
 }

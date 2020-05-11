@@ -70,7 +70,7 @@ public class Peer {
 
         // Create task where stabilizes and notifies chord and gives it to ThreadPool to execute it every second
         final Runnable chordhandle = new ChordHandler(chordNode);
-        pool.scheduleAtFixedRate(chordhandle, 1, 1, TimeUnit.SECONDS);
+        pool.scheduleAtFixedRate(chordhandle, 20, 20, TimeUnit.SECONDS);
 
 
         try {

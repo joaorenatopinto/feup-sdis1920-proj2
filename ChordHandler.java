@@ -1,16 +1,21 @@
-public class ChordHandler implements Runnable{
-    public Node cordNode;
+import java.security.NoSuchAlgorithmException;
 
-    public ChordHandler (Node node){
-        this.cordNode = node;
+public class ChordHandler implements Runnable {
+    public Node chordNode;
+
+    public ChordHandler(Node node) {
+        this.chordNode = node;
     }
 
     @Override
     public void run() {
         System.out.println("Stabilizing Node");
-        //TODO: Fazer tudo o que for preciso para o chord estar sempre fixe.
-        //this.cordNode.stabilize();
-        //this.cordNode.notify();
+        try {
+            chordNode.stabilize();
+            chordNode.fixFingers();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
         return;
     }
 }

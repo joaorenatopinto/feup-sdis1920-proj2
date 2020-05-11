@@ -55,12 +55,59 @@ public class NodeReference {
         return null;
     }
 
-    public void notify(NodeReference n) {
-        // conexão e mandar mensagem
+    public void notify(NodeReference n) throws NoSuchAlgorithmException {
+        SSLSocket Socket = null;  
+        try {
+            SSLSocketFactory factory =  (SSLSocketFactory)SSLSocketFactory.getDefault();
+            Socket = (SSLSocket) factory.createSocket(this.ip, this.port);  
+            
+            Socket.startHandshake();
+
+            PrintWriter out = new PrintWriter(Socket.getOutputStream(), true);
+
+            out.println("CHORD NOTIFY " + n.ip + " " + n.port);
+        } catch ( IOException e ){
+            e.printStackTrace();
+        }
+        return;
     }
 
-    public NodeReference getPredecessor() {
-        // conexão e mandar mensagem
+    public NodeReference getPredecessor() throws NoSuchAlgorithmException{
+        String ipAdress;
+        int portNumber;
+        SSLSocket Socket = null;  
+        try {
+            SSLSocketFactory factory =  (SSLSocketFactory)SSLSocketFactory.getDefault();
+            Socket = (SSLSocket) factory.createSocket(this.ip, this.port);  
+            
+            Socket.startHandshake();
+
+            PrintWriter out = new PrintWriter(Socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
+
+            String fromServer;
+
+            out.println("CHORD GETPREDECESSOR");
+            
+           if ((fromServer = in.readLine()) != null) {
+                System.out.println("Server: " + fromServer);
+                String[] answer = fromServer.split(" ");
+                if(answer[2].equals("NULL")) {
+                    return null;
+                }
+                ipAdress = answer[2];
+                portNumber = Integer.parseInt(answer[3]);
+                NodeReference node = new NodeReference(ipAdress, portNumber);
+                return node;
+            } 
+            else {
+                System.out.println("DEU MERDA");
+            }
+
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

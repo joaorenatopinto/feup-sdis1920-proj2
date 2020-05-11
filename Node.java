@@ -95,7 +95,7 @@ public class Node {
         return this.successor; // assim, qd n se sabe ou a finger table está mal / desactualizada, manda-se para o sucessor para pesquisa linear. no entanto, n está assim no paper
     }
 
-    public void stabilize() {
+    public void stabilize() throws NoSuchAlgorithmException {
         NodeReference x = getSuccessorPredecessor();
 
         if(x!=null && clockwiseExclusiveBetween(x.id, this.id, this.successor.id)) {
@@ -106,7 +106,7 @@ public class Node {
         this.successor.notify(this.ownReference);
     }
 
-    public NodeReference getSuccessorPredecessor() {
+    public NodeReference getSuccessorPredecessor() throws NoSuchAlgorithmException {
         return this.successor.getPredecessor();
     }
 
