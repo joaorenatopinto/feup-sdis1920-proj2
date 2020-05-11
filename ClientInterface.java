@@ -9,7 +9,7 @@ public class ClientInterface {
             Registry registry = LocateRegistry.getRegistry(null);
 
             PeerInterface interfaceStub = (PeerInterface) registry.lookup("Peer" + args[0]);
-            switch (args[1]) {
+            switch (args[1].toUpperCase()) {
                 case "BACKUP":
                     interfaceStub.backup();
                     break;
