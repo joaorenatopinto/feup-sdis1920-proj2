@@ -19,24 +19,21 @@ import Storage.ChunkInfo;
 import Storage.FileInfo;
 
 public class PeerMethods implements PeerInterface {
-    static public int CHUNK_SIZE = 64000;
-    static public double FILE_MAX_SIZE = 1000 * 1000000;
+    static public final int CHUNK_SIZE = 64000;
+    static public final double FILE_MAX_SIZE = 1000 * 1000000;
 
-    public void backup(String path, int rep_degree) throws NoSuchAlgorithmException {
-        Peer.pool.execute(new Runnable() {
-            public void run() {
-                try {
-                    chunkify_file(path, rep_degree);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+    public void backup(String path, int rep_degree) {
+        Peer.pool.execute(() -> {
+            try {
+                chunkify_file(path, rep_degree);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
     }
 
     public void shutdown() {
         Peer.shutdown = true;
-        return;
     }
 
     public void findSuccessorTest(BigInteger id) throws NoSuchAlgorithmException {

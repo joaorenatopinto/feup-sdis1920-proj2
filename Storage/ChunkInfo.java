@@ -1,11 +1,11 @@
 package Storage;
 
 public class ChunkInfo {
-    private int no;
-    private String fileID;
-    private int wanted_rep_degree;
+    private final int no;
+    private final String fileID;
+    private final int wanted_rep_degree;
     private int curr_rep_degree = 0;
-    private int size;
+    private final int size;
 
     public ChunkInfo(int no, String fileID, int rep_degree, int size){
         this.no = no;

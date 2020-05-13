@@ -10,9 +10,9 @@ public class Storage {
     private long max_storage;
     private long curr_storage;
 
-    private List<FileInfo> files_backed;
-    private List<ChunkInfo> chunks_Stored;
-    private int peer_id;
+    private final List<FileInfo> files_backed;
+    private final List<ChunkInfo> chunks_Stored;
+    private final int peer_id;
 
     public Storage(int peer_id){
         this.peer_id = peer_id;
@@ -87,16 +87,12 @@ public class Storage {
 
     public FileInfo getFileInfoByFilePath(String file_path){
         Optional<FileInfo> result = files_backed.stream().filter(file -> file.getPath().equals(file_path)).findFirst();
-        if(result.isPresent())
-            return result.get();
-        else return null;
+        return result.orElse(null);
     }
 
     public ChunkInfo getStoredChunkInfo(String file_id, int chunk_no){
         Optional<ChunkInfo> result  = chunks_Stored.stream().filter(ch -> ((ch.getFileID().equals(file_id)) && (ch.getNo() == chunk_no))).findFirst();
-        if(result.isPresent())
-            return result.get();
-        else return null;
+        return result.orElse(null);
     }
 
     public void addBackedFile(FileInfo file){
@@ -116,7 +112,7 @@ public class Storage {
     }
 
     public void saveFile(byte[] chunk){
-        String path = "Peers/dir" + (Integer.toString(peer_id));
+        String path = "Peers/dir" + (peer_id);
         File directory = new File(path);
         directory.mkdir();
         String chunkTxt = new String(chunk);
@@ -150,7 +146,7 @@ public class Storage {
 
     public static List<byte[]> split(byte[] input) {
         byte[] pattern = {0xD,0xA,0xD,0xA};
-        List<byte[]> l = new LinkedList<byte[]>();
+        List<byte[]> l = new LinkedList<>();
         int blockStart = 0;
         for(int i=0; i<input.length; i++) {
            if(isMatch(pattern,input,i)) {
@@ -171,7 +167,7 @@ public class Storage {
 
         String fileName = chunkpieces[3] + "_" + chunkpieces[4];
 
-        String path = "Peers/dir" + (Integer.toString(peer_id)) + "/temp/" + chunkpieces[3];
+        String path = "Peers/dir" + (peer_id) + "/temp/" + chunkpieces[3];
         File directory = new File(path);
         directory.mkdir();
 
@@ -186,6 +182,6 @@ public class Storage {
         catch (IOException e){
             e.printStackTrace();
             System.exit(-1);
-        };
+        }
     }
 }

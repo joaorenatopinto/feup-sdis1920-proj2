@@ -1,7 +1,7 @@
 import java.security.NoSuchAlgorithmException;
 
 public class ChordHandler implements Runnable {
-    public Node chordNode;
+    public final Node chordNode;
 
     public ChordHandler(Node node) {
         this.chordNode = node;
@@ -15,10 +15,9 @@ public class ChordHandler implements Runnable {
             chordNode.stabilize();
             //System.out.println("After stabilize and before fix fingers");
             chordNode.fixFingers();
-            //System.out.println("After fixfingers");
+            //System.out.println("After fixFingers");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        return;
     }
 }

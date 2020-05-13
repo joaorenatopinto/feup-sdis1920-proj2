@@ -4,7 +4,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 
 public class PeerThread implements Runnable {
-    public Peer peer;
+    public final Peer peer;
 
     public PeerThread (Peer peer) {
         this.peer = peer;

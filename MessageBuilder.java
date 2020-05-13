@@ -13,7 +13,7 @@ public class MessageBuilder {
     }
 
     private static String getMessage(String msgType, String fileId, int chunkNo){
-        String string = "PROTOCOL " + msgType + " " + fileId + " " + Integer.toString(chunkNo);
+        String string = "PROTOCOL " + msgType + " " + fileId + " " + chunkNo;
         return string;
     }
 }

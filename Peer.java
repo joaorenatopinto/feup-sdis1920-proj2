@@ -27,9 +27,9 @@ public class Peer {
         System.setProperty("javax.net.ssl.trustStorePassword", "123456");
 
         if(!((args.length == 4 && args[3].equalsIgnoreCase("CREATE")) || (args.length == 6 && args[3].equalsIgnoreCase("JOIN")))){
-            System.err.println("Usage: Peer <PeerID> <IpAdress> <PortNumber> <ChordOption> :");
-            System.err.println("   Create Option: Peer <PeerID> <IpAdress> <PortNumber> create");
-            System.err.println("   Join Option: Peer <PeerID> <IpAdress> <PortNumber>  join <ChordMemberIpAdress> <ChordMemberPortNumber>");
+            System.err.println("Usage: Peer <PeerID> <IpAddress> <PortNumber> <ChordOption> :");
+            System.err.println("   Create Option: Peer <PeerID> <IpAddress> <PortNumber> create");
+            System.err.println("   Join Option: Peer <PeerID> <IpAddress> <PortNumber>  join <ChordMemberIpAddress> <ChordMemberPortNumber>");
             System.exit(-1);
         }
         try {
@@ -83,7 +83,7 @@ public class Peer {
         // execute it every second
         final Runnable chordhandle = new ChordHandler(chordNode);
         pool.scheduleAtFixedRate(chordhandle, 1, 5, TimeUnit.SECONDS);
-        // Create task where a thread permantly is listening to the server socket and
+        // Create task where a thread is permanently listening to the server socket and
         // gives it to the ThreadPool
         final Runnable listener = new PeerThread(this);
         pool.execute(listener);

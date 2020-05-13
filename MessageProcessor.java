@@ -10,7 +10,7 @@ import javax.net.ssl.SSLSocket;
 
 public class MessageProcessor implements Runnable{
 
-    SSLSocket clientSocket;
+    final SSLSocket clientSocket;
 
     public MessageProcessor (final SSLSocket socket) {
         this.clientSocket = socket;
@@ -30,13 +30,12 @@ public class MessageProcessor implements Runnable{
         final byte[] fromClient = new byte[65000];
         int msg_size;
         try {
-            while ((msg_size = in.read(fromClient)) != -1) {
+            if ((msg_size = in.read(fromClient)) != -1) {
                 final ByteArrayOutputStream message = new ByteArrayOutputStream();
                 message.write(fromClient, 0, msg_size);
                 if (new String(fromClient).equals("Bye.")) {
                     out.println("Bye.");
                     clientSocket.close();
-                    break;
                 } else {
                     final String answer = processMessage(message.toByteArray());
                     if (answer != null) {
@@ -44,12 +43,10 @@ public class MessageProcessor implements Runnable{
                         out.println(answer);
                     }
                     clientSocket.close();
-                    break;
                 }
             }
         } catch (final Exception e) {
             e.printStackTrace();
-            return;
         }
 
     }
@@ -74,7 +71,7 @@ public class MessageProcessor implements Runnable{
         else if(msgParts[0].equals("PROTOCOL")) {
             switch (msgParts[1]) {
                 case "PUTCHUNK":
-                    //GUARDAR O FDP DO FICHEIRO
+                    // Save file
                     Peer.storage.saveFile(msg);
                     return "PROTOCOL BACKUP OH YEAH YEAH YEAH";
                 default:

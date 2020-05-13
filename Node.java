@@ -4,15 +4,15 @@ import java.security.NoSuchAlgorithmException;
 
 public class Node {
     public BigInteger id;
-    public String ip;
-    public int port;
+    public final String ip;
+    public final int port;
 
     NodeReference successor;
     NodeReference predecessor;
     NodeReference[] finger_table;
     NodeReference ownReference;
 
-    private static int M = 160;
+    private static final int M = 160;
 
     public Node(String ip, int port, Peer peer) throws NoSuchAlgorithmException {
         this.ip = ip;
@@ -145,7 +145,7 @@ public class Node {
     }
 
     private BigInteger getHash(String ip, int port) throws NoSuchAlgorithmException {
-        String unhashedId = ip + ';' + Integer.toString(port);
+        String unhashedId = ip + ';' + port;
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         byte[] messageDigest = md.digest(unhashedId.getBytes());
         return new BigInteger(1, messageDigest);

@@ -3,7 +3,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class ClientInterface {
-    // Usage: java ClientInterface ID (ID do Peer a chamar) Protocol :
+    // Usage: java ClientInterface ID (Id of Peer To Call) Protocol :
     //              java ClientInterface ID Backup File_Path Replication_Degree
     //              java ClientInterface ID Shutdown
     //              java ClientInterface ID Restore File_Path

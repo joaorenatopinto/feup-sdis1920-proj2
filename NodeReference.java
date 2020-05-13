@@ -10,8 +10,8 @@ import javax.net.ssl.SSLSocketFactory;
 
 public class NodeReference {
     public BigInteger id;
-    public String ip;
-    public int port;
+    public final String ip;
+    public final int port;
 
     NodeReference(String ip, int port) throws NoSuchAlgorithmException {
         this.ip = ip;
@@ -27,7 +27,7 @@ public class NodeReference {
     }
 
     public NodeReference findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
-        String ipAdress;
+        String ipAddress;
         int portNumber;
         SSLSocket Socket = null;
         try {
@@ -51,13 +51,13 @@ public class NodeReference {
                 String msg = message.toString();
                 //System.out.println("Server: " + msg);
                 String[] answer = msg.split("\\s+|\n");
-                ipAdress = answer[2];
+                ipAddress = answer[2];
                 portNumber = Integer.parseInt(answer[3]);
-                NodeReference node = new NodeReference(ipAdress, portNumber);
+                NodeReference node = new NodeReference(ipAddress, portNumber);
                 return node;
             }
             else {
-                System.out.println("ERROR: Chord findsuccessor answer was empty.");
+                System.out.println("ERROR: Chord findSuccessor answer was empty.");
             }
 
         }
@@ -67,7 +67,7 @@ public class NodeReference {
         return null;
     }
 
-    public void notify(NodeReference n) throws NoSuchAlgorithmException {
+    public void notify(NodeReference n) {
         SSLSocket Socket = null;
         try {
             SSLSocketFactory factory =  (SSLSocketFactory)SSLSocketFactory.getDefault();
@@ -84,11 +84,10 @@ public class NodeReference {
         } catch ( IOException e ){
             e.printStackTrace();
         }
-        return;
     }
 
     public NodeReference getPredecessor() throws NoSuchAlgorithmException{
-        String ipAdress;
+        String ipAddress;
         String portNumber;
         SSLSocket Socket = null;
 
@@ -114,14 +113,14 @@ public class NodeReference {
                 if(answer[2].equals("NULL")) {
                     return null;
                 }
-                ipAdress = answer[2];
+                ipAddress = answer[2];
                 portNumber = answer[3];
-                NodeReference node = new NodeReference(ipAdress, portNumber);
+                NodeReference node = new NodeReference(ipAddress, portNumber);
 
                 return node;
             }
             else {
-                System.out.println("ERROR: Chord getpredecessor answer was empty.");
+                System.out.println("ERROR: Chord getPredecessor answer was empty.");
             }
         }
         catch (IOException e) {
@@ -131,7 +130,7 @@ public class NodeReference {
     }
 
     private BigInteger getHash(String ip, int port) throws NoSuchAlgorithmException {
-        String unhashedId = ip + ';' + Integer.toString(port);
+        String unhashedId = ip + ';' + port;
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         byte[] messageDigest = md.digest(unhashedId.getBytes());
         return new BigInteger(1, messageDigest);

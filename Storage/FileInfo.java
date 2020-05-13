@@ -16,9 +16,9 @@ import java.security.MessageDigest;
 
 public class FileInfo {
     private String id;
-    private String path;
-    private int rep_degree;
-    private List<ChunkInfo> chunks;
+    private final String path;
+    private final int rep_degree;
+    private final List<ChunkInfo> chunks;
 
     public FileInfo(String path, int rep_degree){
         this.path = path;
@@ -35,7 +35,7 @@ public class FileInfo {
     private String hasher(String file_path) throws IOException, NoSuchAlgorithmException{
         Path path = Paths.get(file_path);
         ByteArrayOutputStream dataWMetaData = new ByteArrayOutputStream();
-        StringBuffer hexString = new StringBuffer();
+        StringBuilder hexString = new StringBuilder();
 
         BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
         FileInputStream fis = new FileInputStream(file_path);
@@ -48,11 +48,11 @@ public class FileInfo {
         dataWMetaData.write(data);
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] encodedhash = digest.digest(dataWMetaData.toByteArray());
-        for (int i = 0; i < encodedhash.length; i++) {
-            String hex = Integer.toHexString(0xff & encodedhash[i]);
-            if(hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
+        byte[] encodedHash = digest.digest(dataWMetaData.toByteArray());
+        for (byte b : encodedHash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
         }
 
         return hexString.toString();
@@ -92,19 +92,17 @@ public class FileInfo {
 
     public ChunkInfo getChunkByNo(int no){
         Optional<ChunkInfo> result = chunks.stream().filter(chunk -> chunk.getNo() == no).findFirst();
-        if(!result.isPresent())
-            return null;
-        return result.get();
+        return result.orElse(null);
     }
 
     @Override
     public String toString() {
-        String aux =  "Path: " + path + "\n-\n  FileID: " + id + "\n  Desired Replication Degree: " + rep_degree + "\n  Chunks: " + chunks.size();
+        StringBuilder aux = new StringBuilder("Path: " + path + "\n-\n  FileID: " + id + "\n  Desired Replication Degree: " + rep_degree + "\n  Chunks: " + chunks.size());
         for (ChunkInfo chunkInfo : chunks) {
 
-            aux = aux + "\n-\n" + chunkInfo.toString();
+            aux.append("\n-\n").append(chunkInfo.toString());
 
         }
-        return aux;
+        return aux.toString();
     }
 }
