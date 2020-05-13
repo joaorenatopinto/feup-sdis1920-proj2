@@ -1,8 +1,6 @@
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
@@ -14,7 +12,7 @@ public class MessageProcessor implements Runnable{
 
     SSLSocket clientSocket;
 
-    public MessageProcessor (SSLSocket socket) {
+    public MessageProcessor (final SSLSocket socket) {
         this.clientSocket = socket;
     }
 
@@ -26,47 +24,46 @@ public class MessageProcessor implements Runnable{
         try {
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new DataInputStream(clientSocket.getInputStream());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             return;
         }
-        byte[] fromClient = new byte[65000];
+        final byte[] fromClient = new byte[65000];
         int msg_size;
         try {
-            while ((msg_size = in.read(fromClient)) != -1){
-                ByteArrayOutputStream message = new ByteArrayOutputStream();
+            while ((msg_size = in.read(fromClient)) != -1) {
+                final ByteArrayOutputStream message = new ByteArrayOutputStream();
                 message.write(fromClient, 0, msg_size);
-                if(new String(fromClient).equals("Bye.")) {
+                if (new String(fromClient).equals("Bye.")) {
                     out.println("Bye.");
                     clientSocket.close();
                     break;
-                }
-                else {
-                    String answer = processMessage(message.toByteArray());
+                } else {
+                    final String answer = processMessage(message.toByteArray());
                     if (answer != null) {
-                        System.out.println("YOU: " + answer);
+                        //System.out.println("YOU: " + answer);
                         out.println(answer);
                     }
                     clientSocket.close();
                     break;
                 }
             }
-        } catch (Exception e) {
-           e.printStackTrace();
-           return;
+        } catch (final Exception e) {
+            e.printStackTrace();
+            return;
         }
 
     }
 
-    public String processMessage(byte[] msg) throws NoSuchAlgorithmException {
-        String[] msgParts = new String(msg).split(" ");
+    public String processMessage(final byte[] msg) throws NoSuchAlgorithmException {
+        final String[] msgParts = new String(msg).split(" ");
         NodeReference node = null;
-        if(msgParts[0].equals("CHORD")) {
-            switch(msgParts[1]) {
+        if (msgParts[0].equals("CHORD")) {
+            switch (msgParts[1]) {
                 case "FINDSUCCESSOR":
                     node = Peer.chordNode.findSuccessor(new BigInteger(msgParts[2]));
                     break;
                 case "NOTIFY":
-                    NodeReference notifier = new NodeReference(msgParts[2], Integer.parseInt(msgParts[3]));
+                    final NodeReference notifier = new NodeReference(msgParts[2], Integer.parseInt(msgParts[3]));
                     Peer.chordNode.notify(notifier);
                     break;
                 case "GETPREDECESSOR":

@@ -29,7 +29,7 @@ public class PeerThread implements Runnable {
             while (true) {
                 // waits for a connection to occur and creates a Message Processor task and gives it to ThreadPool
                 final SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
-                System.out.println("Recebi cenas");
+                //System.out.println("Recebi cenas");
                 final Runnable task = new MessageProcessor(clientSocket);
                 Peer.pool.execute(task); 
             }

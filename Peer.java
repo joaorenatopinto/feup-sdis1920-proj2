@@ -1,3 +1,4 @@
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -25,24 +26,43 @@ public class Peer {
         System.setProperty("javax.net.ssl.trustStore", "truststore");
         System.setProperty("javax.net.ssl.trustStorePassword", "123456");
 
-        portNumber = Integer.parseInt(args[1]);
-        ipAddress = args[2];
-        final String chordOption = args[3];
-
-        chordNode = new Node(ipAddress, portNumber, this);
-
-        if (chordOption.equalsIgnoreCase("CREATE")) {
-            System.setProperty("javax.net.ssl.keyStore", "server.keys");
-            System.setProperty("javax.net.ssl.keyStorePassword", "123456");
-            chordNode.create();
-        } else if (chordOption.equalsIgnoreCase("JOIN")) {
-            System.setProperty("javax.net.ssl.keyStore", "client.keys");
-            System.setProperty("javax.net.ssl.keyStorePassword", "123456");
-            chordNode.join(args[4], Integer.parseInt(args[5]));
-        } else {
-            System.out.println("vai te foder burro do caralho");
-            return;
+        if(!((args.length == 4 && args[3].equalsIgnoreCase("CREATE")) || (args.length == 6 && args[3].equalsIgnoreCase("JOIN")))){
+            System.err.println("Usage: Peer <PeerID> <IpAdress> <PortNumber> <ChordOption> :");
+            System.err.println("   Create Option: Peer <PeerID> <IpAdress> <PortNumber> create");
+            System.err.println("   Join Option: Peer <PeerID> <IpAdress> <PortNumber>  join <ChordMemberIpAdress> <ChordMemberPortNumber>");
+            System.exit(-1);
         }
+        try {
+            ipAddress = args[1];
+            portNumber = Integer.parseInt(args[2]);
+            
+            final String chordOption = args[3];
+    
+            chordNode = new Node(ipAddress, portNumber, this);
+    
+            if (chordOption.equalsIgnoreCase("CREATE")) {
+                try {
+                    LocateRegistry.createRegistry(1099);
+                } catch (RemoteException e) {
+                    System.err.println("Failed to start RMI on port : 1099");
+                    System.exit(-1);
+                }
+                System.setProperty("javax.net.ssl.keyStore", "server.keys");
+                System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+                chordNode.create();
+            } else if (chordOption.equalsIgnoreCase("JOIN")) {
+                System.setProperty("javax.net.ssl.keyStore", "client.keys");
+                System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+                chordNode.join(args[4], Integer.parseInt(args[5]));
+            } else {
+                System.out.println("ERROR: Fail to initiate Peer.");
+                return;
+            }
+        } catch (NumberFormatException e){
+            System.err.println("<PortNumber> must be a integer");
+            System.exit(-1);
+        }
+        
 
         try {
             final PeerMethods peer = new PeerMethods();

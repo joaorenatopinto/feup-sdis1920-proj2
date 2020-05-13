@@ -20,7 +20,7 @@ import Storage.FileInfo;
 
 public class PeerMethods implements PeerInterface {
     static public int CHUNK_SIZE = 64000;
-    static public long FILE_MAX_SIZE = (1000000 * 64000);
+    static public double FILE_MAX_SIZE = 1000 * 1000000;
 
     public void backup(String path, int rep_degree) throws NoSuchAlgorithmException {
         Peer.pool.execute(new Runnable() {
@@ -56,11 +56,11 @@ public class PeerMethods implements PeerInterface {
         }
 
         Path path = Paths.get(file_path);
-        /*if(path.toFile().length() > FILE_MAX_SIZE) {
-            System.out.println("File too big, max size: 64GBytes");
+        if(path.toFile().length() > FILE_MAX_SIZE) {
+            System.out.println("File too big, max size: 1GBytes");
             is.close();
             return;
-        }*/
+        }
         FileInfo new_file = new FileInfo(file_path, rep_degree);
         Peer.storage.addBackedFile(new_file);
 
@@ -101,7 +101,7 @@ public class PeerMethods implements PeerInterface {
                     System.out.println("Server: " + fromServer);
                     // String[] answer = fromServer.split(" ");
                 } else {
-                    System.out.println("DEU MERDA");
+                    System.out.println("ERROR: Backup answer was empty.");
                 }
 
             } catch (IOException e) {
