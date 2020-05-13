@@ -20,7 +20,7 @@ public class FileInfo {
     private int rep_degree;
     private List<ChunkInfo> chunks;
 
-    FileInfo(String path, int rep_degree){
+    public FileInfo(String path, int rep_degree){
         this.path = path;
         this.rep_degree = rep_degree;
         try {
@@ -28,7 +28,7 @@ public class FileInfo {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         this.chunks = Collections.synchronizedList(new ArrayList<ChunkInfo>());
     }
 
@@ -36,25 +36,25 @@ public class FileInfo {
         Path path = Paths.get(file_path);
         ByteArrayOutputStream dataWMetaData = new ByteArrayOutputStream();
         StringBuffer hexString = new StringBuffer();
-        
-            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-            FileInputStream fis = new FileInputStream(file_path);
-            byte[] data = new byte[200000000]; 
-            fis.read(data);
-            fis.close();
 
-            dataWMetaData.write(file_path.getBytes());
-            dataWMetaData.write(attr.lastModifiedTime().toString().getBytes());
-            dataWMetaData.write(data);
-       
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] encodedhash = digest.digest(dataWMetaData.toByteArray());
-            for (int i = 0; i < encodedhash.length; i++) {
-                String hex = Integer.toHexString(0xff & encodedhash[i]);
-                if(hex.length() == 1) hexString.append('0');
-                    hexString.append(hex);
-            }       
-        
+        BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+        FileInputStream fis = new FileInputStream(file_path);
+        byte[] data = new byte[200000000];
+        fis.read(data);
+        fis.close();
+
+        dataWMetaData.write(file_path.getBytes());
+        dataWMetaData.write(attr.lastModifiedTime().toString().getBytes());
+        dataWMetaData.write(data);
+
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] encodedhash = digest.digest(dataWMetaData.toByteArray());
+        for (int i = 0; i < encodedhash.length; i++) {
+            String hex = Integer.toHexString(0xff & encodedhash[i]);
+            if(hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+        }
+
         return hexString.toString();
     }
 
@@ -101,9 +101,9 @@ public class FileInfo {
     public String toString() {
         String aux =  "Path: " + path + "\n-\n  FileID: " + id + "\n  Desired Replication Degree: " + rep_degree + "\n  Chunks: " + chunks.size();
         for (ChunkInfo chunkInfo : chunks) {
-            
+
             aux = aux + "\n-\n" + chunkInfo.toString();
-            
+
         }
         return aux;
     }

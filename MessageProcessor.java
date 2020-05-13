@@ -1,9 +1,12 @@
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.io.ByteArrayOutputStream;
 
 import javax.net.ssl.SSLSocket;
 
@@ -17,42 +20,45 @@ public class MessageProcessor implements Runnable{
 
     @Override
     public void run() {
-        BufferedReader in = null;
+        InputStream in = null;
         PrintWriter out = null;
 
-        try { 
+        try {
             out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            in = new DataInputStream(clientSocket.getInputStream());
         } catch (IOException e) {
             return;
         }
-        String fromClient;
+        byte[] fromClient = new byte[65000];
+        int msg_size;
         try {
-            while ((fromClient = in.readLine()) != null){
-                if(fromClient.equals("Bye.")) {
+            while ((msg_size = in.read(fromClient)) != -1){
+                ByteArrayOutputStream message = new ByteArrayOutputStream();
+                message.write(fromClient, 0, msg_size);
+                if(new String(fromClient).equals("Bye.")) {
                     out.println("Bye.");
                     clientSocket.close();
                     break;
-                } 
-                else { 
-                    String answer = processMessage(fromClient); 
+                }
+                else {
+                    String answer = processMessage(message.toByteArray());
                     if (answer != null) {
                         System.out.println("YOU: " + answer);
                         out.println(answer);
-                    }   
+                    }
                     clientSocket.close();
                     break;
                 }
-            } 
+            }
         } catch (Exception e) {
            e.printStackTrace();
            return;
         }
-        
+
     }
 
-    public String processMessage(String msg) throws NoSuchAlgorithmException {
-        String[] msgParts = msg.split(" ");
+    public String processMessage(byte[] msg) throws NoSuchAlgorithmException {
+        String[] msgParts = new String(msg).split(" ");
         NodeReference node = null;
         if(msgParts[0].equals("CHORD")) {
             switch(msgParts[1]) {
@@ -70,7 +76,9 @@ public class MessageProcessor implements Runnable{
         }
         else if(msgParts[0].equals("PROTOCOL")) {
             switch (msgParts[1]) {
-                case "BACKUP":
+                case "PUTCHUNK":
+                    //GUARDAR O FDP DO FICHEIRO
+                    Peer.storage.saveFile(msg);
                     return "PROTOCOL BACKUP OH YEAH YEAH YEAH";
                 default:
                     break;

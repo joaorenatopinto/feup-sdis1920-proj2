@@ -1,8 +1,3 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -11,8 +6,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import Storage.*;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 
 public class Peer {
     static public Node chordNode;
@@ -25,6 +18,7 @@ public class Peer {
     public static void main(String[] args) throws NoSuchAlgorithmException {
         Peer peer = new Peer();
         peer.run(args);
+        storage = new Storage(Integer.parseInt(args[0]));
     }
 
     public void run(String[] args) throws NoSuchAlgorithmException {
@@ -68,38 +62,11 @@ public class Peer {
         // Create task where stabilizes and notifies chord and gives it to ThreadPool to
         // execute it every second
         final Runnable chordhandle = new ChordHandler(chordNode);
-        pool.scheduleAtFixedRate(chordhandle, 20, 20, TimeUnit.SECONDS);
+        pool.scheduleAtFixedRate(chordhandle, 10, 10, TimeUnit.SECONDS);
         // Create task where a thread permantly is listening to the server socket and
         // gives it to the ThreadPool
         final Runnable listener = new PeerThread(this);
         pool.execute(listener);
     }
 
-    public static void backupFile(BigInteger fileId) throws NoSuchAlgorithmException {
-        NodeReference node = chordNode.findSuccessor(fileId);
-        SSLSocket Socket = null;
-        try {
-            SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-            Socket = (SSLSocket) factory.createSocket(node.ip, node.port);
-
-            Socket.startHandshake();
-
-            PrintWriter out = new PrintWriter(Socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
-
-            String fromServer;
-
-            out.println("PROTOCOL BACKUP " + fileId);
-
-            if ((fromServer = in.readLine()) != null) {
-                System.out.println("Server: " + fromServer);
-                // String[] answer = fromServer.split(" ");
-            } else {
-                System.out.println("DEU MERDA");
-            }
-
-        } catch (IOException e) {
-            System.out.println("Exception thrown: " + e.getMessage());
-        }
-    }
 }

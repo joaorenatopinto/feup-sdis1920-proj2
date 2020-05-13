@@ -14,7 +14,7 @@ public class Storage {
     private List<ChunkInfo> chunks_Stored;
     private int peer_id;
 
-   Storage(int peer_id){
+    public Storage(int peer_id){
         this.peer_id = peer_id;
         this.max_storage = 0;
         this.curr_storage = 0;
@@ -32,7 +32,7 @@ public class Storage {
 
     /**
      * Get the size of occupied storage
-     * @return occupied s
+     * @return occupied storage size
      */
     public long getCurr_storage() {
         return curr_storage;
@@ -75,7 +75,7 @@ public class Storage {
     }
 
     public FileInfo getFileInfo(String file_id){
-        try {
+        try{
             Optional<FileInfo> result = files_backed.stream().filter(file -> file.getId().equals(file_id)).findFirst();
             if(result.isPresent())
                 return result.get();
@@ -123,7 +123,7 @@ public class Storage {
         String[] chunkpieces = chunkTxt.split(" ");
         List<byte[]> parts = split(chunk);
 
-        String fileName = chunkpieces[3] + "_" + chunkpieces[4];
+        String fileName = chunkpieces[2] + "_" + chunkpieces[3];
 
         File file = new File(path + "/" + fileName);
         try{

@@ -7,20 +7,20 @@ public class ChunkInfo {
     private int curr_rep_degree = 0;
     private int size;
 
-    ChunkInfo(int no, String fileID, int rep_degree, int size){
+    public ChunkInfo(int no, String fileID, int rep_degree, int size){
         this.no = no;
         this.fileID = fileID;
         this.size = size;
         this.wanted_rep_degree = rep_degree;
     }
-    
+
     /**
      * @return the curr_rep_degree
      */
     public int getCurr_rep_degree() {
         return curr_rep_degree;
     }
-    
+
     /**
      * @return the fileID
      */
@@ -41,7 +41,7 @@ public class ChunkInfo {
     public int getSize() {
         return size;
     }
-    
+
     /**
      * @return the wanted_rep_degree
      */
