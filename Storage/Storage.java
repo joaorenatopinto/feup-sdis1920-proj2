@@ -120,7 +120,7 @@ public class Storage {
         File directory = new File(path);
         directory.mkdir();
         String chunkTxt = new String(chunk);
-        String[] chunkpieces = chunkTxt.split(" ");
+        String[] chunkpieces = chunkTxt.split("\\s+|\n");
         List<byte[]> parts = split(chunk);
 
         String fileName = chunkpieces[2] + "_" + chunkpieces[3];
