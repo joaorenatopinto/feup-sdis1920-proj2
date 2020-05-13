@@ -10,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
+import Storage.*;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -20,6 +20,7 @@ public class Peer {
     static public String ipAddress = null;
     static public int portNumber;
     static public ScheduledExecutorService pool;
+    static public Storage storage;
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
         Peer peer = new Peer();
@@ -48,7 +49,7 @@ public class Peer {
             System.out.println("vai te foder burro do caralho");
             return;
         }
-        
+
         try {
             final PeerMethods peer = new PeerMethods();
 
@@ -62,23 +63,25 @@ public class Peer {
             return;
         }
         System.err.println("Peer ready");
-         pool = Executors.newScheduledThreadPool(50);
+        pool = Executors.newScheduledThreadPool(50);
 
-        // Create task where stabilizes and notifies chord and gives it to ThreadPool to execute it every second
+        // Create task where stabilizes and notifies chord and gives it to ThreadPool to
+        // execute it every second
         final Runnable chordhandle = new ChordHandler(chordNode);
         pool.scheduleAtFixedRate(chordhandle, 20, 20, TimeUnit.SECONDS);
-        // Create task where a thread permantly is listening to the server socket and gives it to the ThreadPool
+        // Create task where a thread permantly is listening to the server socket and
+        // gives it to the ThreadPool
         final Runnable listener = new PeerThread(this);
         pool.execute(listener);
     }
 
     public static void backupFile(BigInteger fileId) throws NoSuchAlgorithmException {
         NodeReference node = chordNode.findSuccessor(fileId);
-        SSLSocket Socket = null;  
+        SSLSocket Socket = null;
         try {
-            SSLSocketFactory factory =  (SSLSocketFactory)SSLSocketFactory.getDefault();
-            Socket = (SSLSocket) factory.createSocket(node.ip, node.port);  
-            
+            SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            Socket = (SSLSocket) factory.createSocket(node.ip, node.port);
+
             Socket.startHandshake();
 
             PrintWriter out = new PrintWriter(Socket.getOutputStream(), true);
@@ -87,18 +90,16 @@ public class Peer {
             String fromServer;
 
             out.println("PROTOCOL BACKUP " + fileId);
-            
-           if ((fromServer = in.readLine()) != null) {
+
+            if ((fromServer = in.readLine()) != null) {
                 System.out.println("Server: " + fromServer);
-                //String[] answer = fromServer.split(" ");
-            }
-            else {
+                // String[] answer = fromServer.split(" ");
+            } else {
                 System.out.println("DEU MERDA");
             }
 
-        } 
-        catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Exception thrown: " + e.getMessage());
         }
     }
-}   
+}
