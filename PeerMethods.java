@@ -40,7 +40,7 @@ public class PeerMethods implements PeerInterface {
     }
 
     public void findSuccessorTest(BigInteger id) throws NoSuchAlgorithmException {
-        System.out.println("AIODUBNAWIOUDBAWODBNAWODNAWODNAWODJNAWODNAOWD");
+        //System.out.println("AIODUBNAWIOUDBAWODBNAWODNAWODNAWODJNAWODNAOWD");
         NodeReference node = Peer.chordNode.findSuccessor(id);
         System.out.println("Node: " + node.ip + " " + node.port + " " + node.id);
     }

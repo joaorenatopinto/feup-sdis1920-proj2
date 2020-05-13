@@ -44,7 +44,7 @@ public class Peer {
                 try {
                     LocateRegistry.createRegistry(1099);
                 } catch (RemoteException e) {
-                    System.err.println("Failed to start RMI on port : 1099");
+                    System.err.println("ERROR: Failed to start RMI on port : 1099");
                     System.exit(-1);
                 }
                 System.setProperty("javax.net.ssl.keyStore", "server.keys");
@@ -55,7 +55,7 @@ public class Peer {
                 System.setProperty("javax.net.ssl.keyStorePassword", "123456");
                 chordNode.join(args[4], Integer.parseInt(args[5]));
             } else {
-                System.out.println("ERROR: Fail to initiate Peer.");
+                System.out.println("ERROR: Failed to initiate Peer.");
                 return;
             }
         } catch (NumberFormatException e){
@@ -76,7 +76,7 @@ public class Peer {
             e.getStackTrace();
             return;
         }
-        System.err.println("Peer ready");
+        //System.err.println("Peer ready");
         pool = Executors.newScheduledThreadPool(50);
 
         // Create task where stabilizes and notifies chord and gives it to ThreadPool to
