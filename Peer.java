@@ -62,7 +62,7 @@ public class Peer {
         // Create task where stabilizes and notifies chord and gives it to ThreadPool to
         // execute it every second
         final Runnable chordhandle = new ChordHandler(chordNode);
-        pool.scheduleAtFixedRate(chordhandle, 10, 10, TimeUnit.SECONDS);
+        pool.scheduleAtFixedRate(chordhandle, 1, 5, TimeUnit.SECONDS);
         // Create task where a thread permantly is listening to the server socket and
         // gives it to the ThreadPool
         final Runnable listener = new PeerThread(this);

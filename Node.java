@@ -96,14 +96,16 @@ public class Node {
     }
 
     public void stabilize() throws NoSuchAlgorithmException {
+        System.out.println("Before get successor predecessor");
         NodeReference x = getSuccessorPredecessor();
 
         if(x!=null && clockwiseExclusiveBetween(x.id, this.id, this.successor.id)) {
             this.successor = x;
             this.finger_table[0] = this.successor;
         }
-
+        System.out.println("Before notify");
         this.successor.notify(this.ownReference);
+        System.out.println("After notify");
     }
 
     public NodeReference getSuccessorPredecessor() throws NoSuchAlgorithmException {
