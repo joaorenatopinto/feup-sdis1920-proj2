@@ -286,10 +286,9 @@ public class PeerMethods implements PeerInterface {
                 BufferedReader in = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
 
                 String fromServer;
-                System.out.println("LEEEEEEEEEEEEEEEEEEEEEEEEEEEENGHT");
-                System.out.println(msg.length);
-                //System.out.println("LEEEEEEEEEEEEEEEEEEEEEEEEEEEENGHT");
                 out.write(msg);
+
+                // TODO: CHECK IF IT ANSWERS SUCCESS OR ERROR AND HANDLE IT
 
                 if ((fromServer = in.readLine()) != null) {
                     System.out.println("Server: " + fromServer);
@@ -302,6 +301,18 @@ public class PeerMethods implements PeerInterface {
                 System.out.println("Exception thrown: " + e.getMessage());
             }
         }
+    }
+
+    static public boolean saveChunk(byte[] chunk){
+        long diff = (Peer.storage.getCurr_storage() + chunk.length) - Peer.storage.getMax_storage();
+        if (diff > 0 && Peer.storage.getMax_storage() != -1){
+            //if (!manage_storage(diff, false)){
+            System.out.println("No Space Available");
+            return false;
+            //}
+        }
+        Peer.storage.saveFile(chunk);
+        return true;
     }
 
     static public byte[] retrieveChunk(String file_id, int chunk_no) throws IOException {
@@ -329,6 +340,59 @@ public class PeerMethods implements PeerInterface {
         }
         return false;
     }
+
+    public void space_reclaim(long new_max_storage) throws IOException {
+        new_max_storage *= 1000;
+        if(new_max_storage < 0) {
+            Peer.storage.setMax_storage(-1);
+        }
+        else {
+            long space_to_free = Peer.storage.getCurr_storage() - new_max_storage;
+            Peer.storage.setMax_storage(new_max_storage);
+            if(space_to_free > 0) manage_storage(space_to_free, true);
+        }
+        return;
+    }
+
+    static public boolean manage_storage(long space_to_free, boolean must_delete) throws IOException {
+        // If Max Storage is -1 it means it is unlimited
+        if(Peer.storage.getMax_storage() == -1)
+            return true;
+        int max_repdegree_dif;
+        long freed_space = 0;
+        ChunkInfo to_remove;
+        while(freed_space < space_to_free) {
+            max_repdegree_dif = -10;
+            to_remove = null;
+            for(ChunkInfo chunk : Peer.storage.getChunks_Stored()) {
+                int rep_degree_dif = chunk.getCurr_rep_degree() - chunk.getWanted_rep_degree();
+                if( rep_degree_dif > max_repdegree_dif ) {
+                    max_repdegree_dif = rep_degree_dif;
+                    to_remove = chunk;
+                }
+            }
+            if(must_delete) {
+                File chunk_file = new File("Peers/" + "dir" + Peer.id + "/" + to_remove.getChunkID());
+                Peer.storage.RemoveFromCurr_storage(chunk_file.length());
+                freed_space += chunk_file.length();
+                Peer.storage.removeStoredChunk(to_remove);
+                // TODO: INFORM NODES THAT FILE WAS DELETED ??? 
+                chunk_file.delete();
+            }
+            else if(max_repdegree_dif > 0) {
+                File chunk_file = new File("Peers/" + "dir" + Peer.id + "/" + to_remove);
+                Peer.storage.RemoveFromCurr_storage(chunk_file.length());
+                freed_space += chunk_file.length();
+                Peer.storage.removeStoredChunk(to_remove);
+                // TODO: INFORM NODES THAT FILE WAS DELETED ??? 
+                chunk_file.delete();
+            }
+            else return false;
+        }
+        return true;
+    }
+
+
 
     private BigInteger getHash(String file_id, int chunk_no, int copyNo) throws NoSuchAlgorithmException {
         String unhashedId = file_id + "_" + chunk_no + "_" + copyNo;

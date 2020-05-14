@@ -82,9 +82,9 @@ public class MessageProcessor implements Runnable{
                 case "PUTCHUNK":
                     // Save file
                     // TODO: RETURN SUCESS OR NOT AND ANSWER WITH SUCESS OR ERROR MESSAGE
-                    
-                    Peer.storage.saveFile(msg);
-                    return "PROTOCOL BACKUP OH YEAH YEAH YEAH".getBytes();
+                    if(Peer.saveChunk(msg))
+                        return "SUCCESS".getBytes();
+                    return "ERROR".getBytes();
                 case "GETCHUNK":
                     // Get the information of the needed chunk
                     file_id = msgParts[2];

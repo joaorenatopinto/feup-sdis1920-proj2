@@ -36,6 +36,16 @@ public class ClientInterface {
                 case "DELETE":
                     interfaceStub.delete(args[2]);
                     break;
+                case "RECLAIM":
+                    try {
+                        interfaceStub.space_reclaim(Long.parseLong(args[2]));
+                    } catch (NumberFormatException e) {
+                        System.out.println(e.getMessage());
+                        System.err.println("<New_Max_Storage> must be a Number");
+                        System.exit(-1);
+                    }
+                   
+                    break;
                 case "SHUTDOWN":
                     interfaceStub.shutdown();
                 case "FINDSUCCESSOR":
