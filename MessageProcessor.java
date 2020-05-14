@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 
 import javax.net.ssl.SSLSocket;

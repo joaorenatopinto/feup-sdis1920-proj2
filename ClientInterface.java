@@ -8,12 +8,17 @@ public class ClientInterface {
     //              java ClientInterface ID Shutdown
     //              java ClientInterface ID Restore File_Path
     public static void main(String[] args) {
+        
+        if (args.length == 3 && (args[1].equalsIgnoreCase("DELETE") || args[1].equalsIgnoreCase("RESTORE") || args[1].equalsIgnoreCase("RECLAIM"))){
+            
+        } else if (args.length == 4 && args[1].equalsIgnoreCase("BACKUP")){
 
-        if(!((args.length == 3 && args[1].equalsIgnoreCase("DELETE")) || (args.length == 3 && args[1].equalsIgnoreCase("RESTORE")) || (args.length == 4 && args[1].equalsIgnoreCase("BACKUP")))){
+        } else {
             System.err.println("Usage: java ClientInterface <PeerID>  <Protocol> :");
             System.err.println("   Backup protocol: ClientInterface <PeerID> Backup <File_Path> <Replication_Degree>");
             System.err.println("   Restore protocol: ClientInterface <PeerID> Restore <File_Path>");
             System.err.println("   Delete protocol: ClientInterface <PeerID> Delete <File_Path>");
+            System.err.println("   Reclaim protocol: ClientInterface <PeerID> Reclaim <New_Max_Storage>");
             System.exit(-1);
         }
         try {
