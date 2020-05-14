@@ -77,6 +77,8 @@ public class MessageProcessor implements Runnable{
             }
         }
         else if(msgParts[0].equals("PROTOCOL")) {
+            String file_id;
+            int chunk_no;
             switch (msgParts[1]) {
                 case "PUTCHUNK":
                     // Save file
@@ -86,12 +88,11 @@ public class MessageProcessor implements Runnable{
                     return "PROTOCOL BACKUP OH YEAH YEAH YEAH".getBytes();
                 case "GETCHUNK":
                     // Get the information of the needed chunk
-                    String file_id = msgParts[2];
-                    int chunk_no = Integer.parseInt(msgParts[3]);
+                    file_id = msgParts[2];
+                    chunk_no = Integer.parseInt(msgParts[3]);
                     byte[] chunk;
 
                     // Send Chunk
-                    // TODO: SEND CHUNK OR ERROR MESSAGE
                     try {
                         chunk = Peer.retrieveChunk(file_id, chunk_no);
                     } catch (IOException e) {
@@ -99,6 +100,14 @@ public class MessageProcessor implements Runnable{
                         return "ERROR".getBytes();
                     }
                     return chunk;
+                case "DELETE":
+                    // Get the information of the needed chunk
+                    file_id = msgParts[2];
+                    chunk_no = Integer.parseInt(msgParts[3]);
+                    // Delete chunk
+                    if (Peer.deleteSavedChunk(file_id, chunk_no))
+                        return "SUCCESS".getBytes();
+                    return "ERROR".getBytes();
                 default:
                     break;
             }

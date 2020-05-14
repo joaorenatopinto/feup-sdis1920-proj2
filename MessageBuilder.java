@@ -40,6 +40,14 @@ public class MessageBuilder {
         return message.toByteArray();
     }
 
+    public static byte[] getDeleteMessage(String fileId, int chunkNo) throws IOException {
+        String msg = getMessage("DELETE", fileId, chunkNo);
+        ByteArrayOutputStream message = new ByteArrayOutputStream();
+        message.write(msg.getBytes());
+
+        return message.toByteArray();
+    }
+
     private static String getMessage(String msgType, String fileId, int chunkNo){
         String string = "PROTOCOL " + msgType + " " + fileId + " " + chunkNo;
         return string;

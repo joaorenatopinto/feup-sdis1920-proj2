@@ -46,6 +46,16 @@ public class PeerMethods implements PeerInterface {
         });
     }
 
+    public void delete(String path) {
+        Peer.pool.execute(() -> {
+            try {
+                deleteFile(path);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public void restoreFile(String file_path){
         FileInfo file = Peer.storage.getFileInfoByFilePath(file_path);
         if(file == null){
@@ -70,6 +80,30 @@ public class PeerMethods implements PeerInterface {
         }
         dechunky_file(file_path);
     }
+
+    public void deleteFile(String file_path) throws IOException {
+        FileInfo file = Peer.storage.getFileInfoByFilePath(file_path);
+        if(file == null){
+            System.out.println("You can only delete files that have been previously backed up by the system.");
+            return;
+        }
+        String file_id = file.getId();
+        int n_chunks = file.getChunks().size();
+
+        for(int chunk_no = 1; chunk_no <= n_chunks; chunk_no++) {
+            try {
+                boolean success = deleteChunk(file_id, chunk_no, file.getRep_degree());
+                if(!success) {
+                    System.out.println("Couldn't delete the chunk number " + chunk_no);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        Peer.storage.removeBackedFile(file);
+        System.out.println("All " + file_path + " chunks were deleted");
+    }
+
 
     public byte[] restoreChunk(String file_id, int chunk_no, int rep_degree) throws IOException, NoSuchAlgorithmException {
         byte[] chunk = null;
@@ -115,6 +149,47 @@ public class PeerMethods implements PeerInterface {
             }
         }
         return chunk;
+    }
+
+    public boolean deleteChunk(String file_id, int chunk_no, int rep_degree) throws IOException, NoSuchAlgorithmException {
+
+        for(int i = 0; i < rep_degree; i++) {
+            BigInteger chunkChordId = getHash(file_id, chunk_no, i);
+            System.out.println(">>> Chunk Hash: " + chunkChordId + " <<<");
+            NodeReference receiverNode = Peer.chordNode.findSuccessor(chunkChordId);
+            System.out.println(">>> Successor ID: " + receiverNode.id + " <<<");
+            byte[] msg = MessageBuilder.getDeleteMessage(file_id, chunk_no);
+            SSLSocket Socket = null;
+            try {
+                SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+                Socket = (SSLSocket) factory.createSocket(receiverNode.ip, receiverNode.port);
+
+                Socket.startHandshake();
+
+                DataOutputStream dataOut = new DataOutputStream(Socket.getOutputStream());
+                InputStream in = Socket.getInputStream();
+
+                dataOut.write(msg);
+
+                final byte[] fromClient = new byte[65000];
+                int msg_size;
+                if ((msg_size = in.read(fromClient)) != -1) {
+                    final ByteArrayOutputStream message = new ByteArrayOutputStream();
+                    message.write(fromClient, 0, msg_size);
+                    if (new String(fromClient).equals("ERROR")) {
+                        Socket.close();
+                        continue;
+                    } else if (new String(fromClient).equals("SUCCESS")){
+                        System.out.println("NICE!");
+                        Socket.close();
+                        continue;
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("Exception thrown: " + e.getMessage());
+            }
+        }
+        return true;
     }
 
     public void shutdown() {
@@ -240,6 +315,19 @@ public class PeerMethods implements PeerInterface {
         chunk = MessageBuilder.getChunkMessage(file_id, chunk_no, body.toByteArray());
 
         return chunk;
+    }
+
+    static public boolean deleteSavedChunk(String file_id, int chunk_no) {
+        String key = file_id + "_" + chunk_no;
+        ChunkInfo chunk = Peer.storage.getStoredChunkInfo(file_id, chunk_no);
+        if (chunk != null) {
+            Path file = Paths.get("Peers/dir" + Peer.id + "/" + key);
+            if (!file.toFile().delete())
+                return false;
+            Peer.storage.removeStoredChunk(chunk);
+            return true;
+        }
+        return false;
     }
 
     private BigInteger getHash(String file_id, int chunk_no, int copyNo) throws NoSuchAlgorithmException {
