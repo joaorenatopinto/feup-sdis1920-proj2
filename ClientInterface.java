@@ -24,6 +24,9 @@ public class ClientInterface {
                 case "BACKUP":
                     interfaceStub.backup(args[2], Integer.parseInt(args[3]));
                     break;
+                case "RESTORE":
+                    interfaceStub.restore(args[2]);
+                    break;
                 case "SHUTDOWN":
                     interfaceStub.shutdown();
                 case "FINDSUCCESSOR":

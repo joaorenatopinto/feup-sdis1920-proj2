@@ -8,13 +8,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import Storage.*;
 
-public class Peer {
+public class Peer extends PeerMethods {
     static public Node chordNode;
     static public boolean shutdown = false;
     static public String ipAddress = null;
     static public int portNumber;
     static public ScheduledExecutorService pool;
     static public Storage storage;
+    static public int id;
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
 
@@ -22,7 +23,8 @@ public class Peer {
 
         Peer peer = new Peer();
         peer.run(args);
-        storage = new Storage(Integer.parseInt(args[0]));
+        id = Integer.parseInt(args[0]);
+        storage = new Storage(id);
     }
 
     public void run(String[] args) throws NoSuchAlgorithmException {

@@ -1,9 +1,11 @@
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 
 import javax.net.ssl.SSLSocket;
@@ -19,10 +21,13 @@ public class MessageProcessor implements Runnable{
     @Override
     public void run() {
         InputStream in = null;
-        PrintWriter out = null;
+        //PrintWriter out = null;
+        OutputStream dataOut = null;
 
         try {
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            
+            dataOut = new DataOutputStream(clientSocket.getOutputStream());
+            //out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new DataInputStream(clientSocket.getInputStream());
         } catch (final IOException e) {
             return;
@@ -32,16 +37,19 @@ public class MessageProcessor implements Runnable{
         try {
             if ((msg_size = in.read(fromClient)) != -1) {
                 final ByteArrayOutputStream message = new ByteArrayOutputStream();
-                message.write(fromClient, 0, msg_size);
+                message.write(fromClient, 0, msg_size); 
+
+                //System.out.println(msg_size);
                 if (new String(fromClient).equals("Bye.")) {
-                    out.println("Bye.");
+                    dataOut.write("Bye.".getBytes());
                     clientSocket.close();
                 } else {
-                    final String answer = processMessage(message.toByteArray());
-                    if (answer != null) {
+                    byte[] meh = processMessage(message.toByteArray());
+                    if (meh != null) {
+                        //final String answer = new String(meh);
                         //System.out.println("YOU: " + answer);
-                        out.println(answer);
-                    }
+                        dataOut.write(meh);
+                    } 
                     clientSocket.close();
                 }
             }
@@ -51,8 +59,8 @@ public class MessageProcessor implements Runnable{
 
     }
 
-    public String processMessage(final byte[] msg) throws NoSuchAlgorithmException {
-        final String[] msgParts = new String(msg).split(" ");
+    public byte[] processMessage(final byte[] msg) throws NoSuchAlgorithmException {
+        final String[] msgParts = new String(msg).split("\\s+|\n");
         NodeReference node = null;
         if (msgParts[0].equals("CHORD")) {
             switch (msgParts[1]) {
@@ -72,14 +80,31 @@ public class MessageProcessor implements Runnable{
             switch (msgParts[1]) {
                 case "PUTCHUNK":
                     // Save file
+                    // TODO: RETURN SUCESS OR NOT AND ANSWER WITH SUCESS OR ERROR MESSAGE
+                    
                     Peer.storage.saveFile(msg);
-                    return "PROTOCOL BACKUP OH YEAH YEAH YEAH";
+                    return "PROTOCOL BACKUP OH YEAH YEAH YEAH".getBytes();
+                case "GETCHUNK":
+                    // Get the information of the needed chunk
+                    String file_id = msgParts[2];
+                    int chunk_no = Integer.parseInt(msgParts[3]);
+                    byte[] chunk;
+
+                    // Send Chunk
+                    // TODO: SEND CHUNK OR ERROR MESSAGE
+                    try {
+                        chunk = Peer.retrieveChunk(file_id, chunk_no);
+                    } catch (IOException e) {
+                        // If it catches an IOException it means it couldn't retrieve the chunk so it informs the node
+                        return "ERROR".getBytes();
+                    }
+                    return chunk;
                 default:
                     break;
             }
         }
         if (node != null) {
-            return "CHORD NODE " + node.ip + " " + node.port;
+            return ("CHORD NODE " + node.ip + " " + node.port).getBytes();
         } else return null;
     }
 }

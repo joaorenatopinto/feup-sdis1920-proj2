@@ -114,11 +114,12 @@ public class Storage {
     public void saveFile(byte[] chunk){
         String path = "Peers/dir" + (peer_id);
         File directory = new File(path);
+        
         directory.mkdir();
         String chunkTxt = new String(chunk);
         String[] chunkpieces = chunkTxt.split("\\s+|\n");
         List<byte[]> parts = split(chunk);
-
+        //System.out.println(chunkTxt);
         String fileName = chunkpieces[2] + "_" + chunkpieces[3];
 
         File file = new File(path + "/" + fileName);
@@ -146,7 +147,8 @@ public class Storage {
     }
 
     public static List<byte[]> split(byte[] input) {
-        byte[] pattern = {0xD,0xA,0xD,0xA};
+        //byte[] pattern = {0xD,0xA,0xD,0xA};
+        byte[] pattern = "\r\n\r\n".getBytes();
         List<byte[]> l = new LinkedList<>();
         int blockStart = 0;
         for(int i=0; i<input.length; i++) {
@@ -164,11 +166,11 @@ public class Storage {
     public void restoreChunk(byte[] chunk) {
         String chunkTxt = new String(chunk);
         List<byte[]> parts = split(chunk);
-        String[] chunkpieces = chunkTxt.split(" ");
+        String[] chunkpieces = chunkTxt.split("\\s+|\n");
+        
+        String fileName = chunkpieces[2] + "_" + chunkpieces[3];
 
-        String fileName = chunkpieces[3] + "_" + chunkpieces[4];
-
-        String path = "Peers/dir" + (peer_id) + "/temp/" + chunkpieces[3];
+        String path = "Peers/dir" + (peer_id) + "/temp/" + chunkpieces[2];
         File directory = new File(path);
         directory.mkdir();
 

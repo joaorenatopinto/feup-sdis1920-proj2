@@ -1,12 +1,16 @@
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -19,7 +23,7 @@ import Storage.ChunkInfo;
 import Storage.FileInfo;
 
 public class PeerMethods implements PeerInterface {
-    static public final int CHUNK_SIZE = 64000;
+    static public final int CHUNK_SIZE = 16000;
     static public final double FILE_MAX_SIZE = 1000 * 1000000;
 
     public void backup(String path, int rep_degree) {
@@ -30,6 +34,87 @@ public class PeerMethods implements PeerInterface {
                 e.printStackTrace();
             }
         });
+    }
+    
+    public void restore(String path) {
+        Peer.pool.execute(() -> {
+            try {
+                restoreFile(path);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void restoreFile(String file_path){
+        FileInfo file = Peer.storage.getFileInfoByFilePath(file_path);
+        if(file == null){
+            System.out.println("You can only restore files that have been previously backed up by the system.");
+            return;
+        }
+        String file_id = file.getId();
+        int n_chunks = file.getChunks().size();
+
+        for(int chunk_no = 1; chunk_no <= n_chunks; chunk_no++) {
+            try {
+                byte[] chunk = restoreChunk(file_id, chunk_no, file.getRep_degree());
+                if(chunk != null) {
+                    Peer.storage.restoreChunk(chunk);
+                } else {
+                    System.out.println("Couldn't restore the chunk number " + chunk_no);
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        dechunky_file(file_path);
+    }
+
+    public byte[] restoreChunk(String file_id, int chunk_no, int rep_degree) throws IOException, NoSuchAlgorithmException {
+        byte[] chunk = null;
+
+        for(int i = 0; i < rep_degree; i++) {
+            BigInteger chunkChordId = getHash(file_id, chunk_no, i);
+            System.out.println(">>> Chunk Hash: " + chunkChordId + " <<<");
+            NodeReference receiverNode = Peer.chordNode.findSuccessor(chunkChordId);
+            System.out.println(">>> Successor ID: " + receiverNode.id + " <<<");
+            byte[] msg = MessageBuilder.getGetchunkMessage(file_id, chunk_no);
+            SSLSocket Socket = null;
+            try {
+                SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+                Socket = (SSLSocket) factory.createSocket(receiverNode.ip, receiverNode.port);
+
+                Socket.startHandshake();
+
+                DataOutputStream dataOut = new DataOutputStream(Socket.getOutputStream());
+                InputStream in = Socket.getInputStream();
+
+                dataOut.write(msg);
+
+                final byte[] fromClient = new byte[65000];
+                int msg_size;
+                if ((msg_size = in.read(fromClient)) != -1) {
+                    final ByteArrayOutputStream message = new ByteArrayOutputStream();
+                    message.write(fromClient, 0, msg_size);
+                    if (new String(fromClient).equals("ERROR")) {
+                        System.out.println("~~~~~~~~~~~~~~");
+                        System.out.println("errrrrrrooooooooooooo");
+                        System.out.println("~~~~~~~~~~~~~~");
+                        Socket.close();
+                        continue;
+                    } else {
+                        // TODO: CHECK IF FILE ID AND CHUNK NO MATCH (IF YES:)
+                        chunk = message.toByteArray();
+                        Socket.close();
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("Exception thrown: " + e.getMessage());
+            }
+        }
+        return chunk;
     }
 
     public void shutdown() {
@@ -69,10 +154,39 @@ public class PeerMethods implements PeerInterface {
             body.write(b, 0, chunk_size);
             byte[] chunk_body = body.toByteArray();
             new_file.addChunk(new ChunkInfo(chunkno, new_file.getId(), rep_degree, chunk_body.length));
+            //Peer.storage.saveFile(chunk_body);
             backupChunk(new_file.getId(), chunkno, rep_degree, chunk_body);
+            chunkno++;
         }
         is.close();
     }
+
+    public void dechunky_file(String file_path) {
+        FileInfo file = Peer.storage.getFileInfoByFilePath(file_path);
+        String file_id = file.getId();
+        int n_chunks = file.getChunks().size();
+
+        String restored_dir_path = "Peers/dir" + Integer.toString(Peer.id) + "/restored";
+        File restored_path = new File(restored_dir_path);
+        restored_path.mkdir();
+
+        File restored_file = new File(restored_dir_path + "/" + file_path.split("/")[file_path.split("/").length-1]);
+        try {
+            restored_file.createNewFile();
+            OutputStream os = new FileOutputStream(restored_file);
+            for(int i = 1; i <= n_chunks; i++) {
+                File chunk = new File("Peers/dir" + Integer.toString(Peer.id) + "/temp" + "/" + file_id + "/" + file_id + "_" + i);
+                os.write(Files.readAllBytes(chunk.toPath()));
+                chunk.delete();
+                new File("Peers/dir" + Integer.toString(Peer.id) + "/temp" + "/" + file_id).delete();
+            }
+            os.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
 
     public void backupChunk(String file_id, int chunk_no, int rep_degree, byte[] body) throws NoSuchAlgorithmException, IOException {
         for(int i = 0; i < rep_degree; i++) {
@@ -85,13 +199,21 @@ public class PeerMethods implements PeerInterface {
             try {
                 SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                 Socket = (SSLSocket) factory.createSocket(receiverNode.ip, receiverNode.port);
-
+                //Socket.setSendBufferSize(64000);
+                //System.out.println("MANDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                //System.out.println(Socket.getSendBufferSize());
+                
+                
+                Socket.setReceiveBufferSize(64000);
                 Socket.startHandshake();
 
                 DataOutputStream out = new DataOutputStream(Socket.getOutputStream());
                 BufferedReader in = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
 
                 String fromServer;
+                System.out.println("LEEEEEEEEEEEEEEEEEEEEEEEEEEEENGHT");
+                System.out.println(msg.length);
+                //System.out.println("LEEEEEEEEEEEEEEEEEEEEEEEEEEEENGHT");
                 out.write(msg);
 
                 if ((fromServer = in.readLine()) != null) {
@@ -105,6 +227,19 @@ public class PeerMethods implements PeerInterface {
                 System.out.println("Exception thrown: " + e.getMessage());
             }
         }
+    }
+
+    static public byte[] retrieveChunk(String file_id, int chunk_no) throws IOException {
+        byte[] chunk = null;
+        String key = file_id + "_" + chunk_no;
+
+        Path file = Paths.get("Peers/dir" + Peer.id + "/" + key);
+        byte[] file_data = Files.readAllBytes(file);
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        body.write(file_data);
+        chunk = MessageBuilder.getChunkMessage(file_id, chunk_no, body.toByteArray());
+
+        return chunk;
     }
 
     private BigInteger getHash(String file_id, int chunk_no, int copyNo) throws NoSuchAlgorithmException {

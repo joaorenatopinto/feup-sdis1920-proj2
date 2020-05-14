@@ -6,4 +6,5 @@ public interface PeerInterface extends Remote {
     void backup(String path, int rep_degree) throws RemoteException;
     void shutdown() throws RemoteException;
     void findSuccessorTest(BigInteger id) throws RemoteException, NoSuchAlgorithmException;
+	void restore(String path) throws RemoteException;
 }
