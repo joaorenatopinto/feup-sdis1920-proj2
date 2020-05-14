@@ -9,7 +9,7 @@ public class ChordHandler implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Stabilize and Fix Fingers");
+        //System.out.println("Stabilize and Fix Fingers");
         try {
            // System.out.println("Before stabilize");
             chordNode.stabilize();
@@ -19,5 +19,6 @@ public class ChordHandler implements Runnable {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+        System.out.println(chordNode);
     }
 }

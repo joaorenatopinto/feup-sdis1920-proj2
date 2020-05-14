@@ -77,7 +77,9 @@ public class PeerMethods implements PeerInterface {
     public void backupChunk(String file_id, int chunk_no, int rep_degree, byte[] body) throws NoSuchAlgorithmException, IOException {
         for(int i = 0; i < rep_degree; i++) {
             BigInteger chunkChordId = getHash(file_id, chunk_no, i);
+            System.out.println(">>> Chunk Hash: " + chunkChordId + " <<<");
             NodeReference receiverNode = Peer.chordNode.findSuccessor(chunkChordId);
+            System.out.println(">>> Successor ID: " + receiverNode.id + " <<<");
             byte[] msg = MessageBuilder.getPutchunkMessage(file_id, chunk_no, body);
             SSLSocket Socket = null;
             try {
@@ -109,6 +111,10 @@ public class PeerMethods implements PeerInterface {
         String unhashedId = file_id + "_" + chunk_no + "_" + copyNo;
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         byte[] messageDigest = md.digest(unhashedId.getBytes());
-        return new BigInteger(1, messageDigest);
+        BigInteger toNum = new BigInteger(1, messageDigest);
+        while(toNum.compareTo(new BigInteger("1000000000"))==1) {
+            toNum = toNum.divide(new BigInteger("10"));
+        }
+        return toNum;
     }
 }

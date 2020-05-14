@@ -133,6 +133,10 @@ public class NodeReference {
         String unhashedId = ip + ';' + port;
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         byte[] messageDigest = md.digest(unhashedId.getBytes());
-        return new BigInteger(1, messageDigest);
+        BigInteger toNum = new BigInteger(1, messageDigest);
+        while(toNum.compareTo(new BigInteger("1000000000"))==1) {
+            toNum = toNum.divide(new BigInteger("10"));
+        }
+        return toNum;
     }
 }
