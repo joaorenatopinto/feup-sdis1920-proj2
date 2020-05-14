@@ -127,6 +127,7 @@ public class Storage {
             file.createNewFile();
             OutputStream os  = new FileOutputStream(file);
             os.write(parts.get(1));
+            this.addStoredChunk(new ChunkInfo(Integer.parseInt(chunkpieces[3]), chunkpieces[2], 0, (int)file.length()));
             this.addToCurr_storage(file.length());
             os.close();
         } catch (IOException e){

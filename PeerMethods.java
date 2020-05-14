@@ -37,7 +37,6 @@ public class PeerMethods implements PeerInterface {
     }
 
     public void findSuccessorTest(BigInteger id) throws NoSuchAlgorithmException {
-        //System.out.println("AIODUBNAWIOUDBAWODBNAWODNAWODNAWODJNAWODNAOWD");
         NodeReference node = Peer.chordNode.findSuccessor(id);
         System.out.println("Node: " + node.ip + " " + node.port + " " + node.id);
     }
@@ -91,7 +90,6 @@ public class PeerMethods implements PeerInterface {
                 BufferedReader in = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
 
                 String fromServer;
-
                 out.write(msg);
 
                 if ((fromServer = in.readLine()) != null) {

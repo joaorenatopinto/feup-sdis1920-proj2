@@ -17,6 +17,9 @@ public class Peer {
     static public Storage storage;
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
+
+        //   java Peer 9 localhost 8009 JOIN localhost 8003
+
         Peer peer = new Peer();
         peer.run(args);
         storage = new Storage(Integer.parseInt(args[0]));
