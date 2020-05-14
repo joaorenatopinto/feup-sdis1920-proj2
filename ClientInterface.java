@@ -8,6 +8,13 @@ public class ClientInterface {
     //              java ClientInterface ID Shutdown
     //              java ClientInterface ID Restore File_Path
     public static void main(String[] args) {
+
+        if(!((args.length == 2 && args[3].equalsIgnoreCase("RESTORE")) || (args.length == 4 && args[2].equalsIgnoreCase("BACKUP")))){
+            System.err.println("Usage: java ClientInterface <PeerID>  <Protocol> :");
+            System.err.println("   Backup protocol: ClientInterface <PeerID> Backup <File_Path> <Replication_Degree>");
+            System.err.println("   Restore protocol: ClientInterface <PeerID> Restore <File_Path>");
+            System.exit(-1);
+        }
         try {
             // Getting the registry
             Registry registry = LocateRegistry.getRegistry(null);
