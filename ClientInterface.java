@@ -3,10 +3,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class ClientInterface {
-    // Usage: java ClientInterface ID (Id of Peer To Call) Protocol :
-    //              java ClientInterface ID Backup File_Path Replication_Degree
-    //              java ClientInterface ID Shutdown
-    //              java ClientInterface ID Restore File_Path
     public static void main(String[] args) {
         
         if (args.length == 3 && (args[1].equalsIgnoreCase("DELETE") || args[1].equalsIgnoreCase("RESTORE") || args[1].equalsIgnoreCase("RECLAIM"))){

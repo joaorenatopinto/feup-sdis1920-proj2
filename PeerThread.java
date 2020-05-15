@@ -19,7 +19,6 @@ public class PeerThread implements Runnable {
 
         try {
             serverSocket = (SSLServerSocket) ssf.createServerSocket(Peer.portNumber);
-            //serverSocket.setReceiveBufferSize(64000);
             
         } catch (final IOException e) {
             System.out.println("Server - Failed to create SSLServerSocket");
@@ -31,10 +30,6 @@ public class PeerThread implements Runnable {
             while (true) {
                 // waits for a connection to occur and creates a Message Processor task and gives it to ThreadPool
                 final SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
-                //System.out.println("SIZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-                //System.out.println(serverSocket.getReceiveBufferSize());
-                
-                //System.out.println("Recebi cenas");
                 final Runnable task = new MessageProcessor(clientSocket);
                 Peer.pool.execute(task); 
             }

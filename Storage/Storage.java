@@ -119,7 +119,6 @@ public class Storage {
         String chunkTxt = new String(chunk);
         String[] chunkpieces = chunkTxt.split("\\s+|\n");
         List<byte[]> parts = split(chunk);
-        //System.out.println(chunkTxt);
         String fileName = chunkpieces[2] + "_" + chunkpieces[3];
 
         File file = new File(path + "/" + fileName);
@@ -147,7 +146,6 @@ public class Storage {
     }
 
     public static List<byte[]> split(byte[] input) {
-        //byte[] pattern = {0xD,0xA,0xD,0xA};
         byte[] pattern = "\r\n\r\n".getBytes();
         List<byte[]> l = new LinkedList<>();
         int blockStart = 0;
