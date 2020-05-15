@@ -11,11 +11,10 @@ public class ChordHandler implements Runnable {
     public void run() {
         //System.out.println("Stabilize and Fix Fingers");
         try {
-           // System.out.println("Before stabilize");
+            chordNode.checkSuccessor();
+            chordNode.checkPredecessor();
             chordNode.stabilize();
-            //System.out.println("After stabilize and before fix fingers");
             chordNode.fixFingers();
-            //System.out.println("After fixFingers");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }

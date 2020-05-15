@@ -1,4 +1,5 @@
 import java.math.BigInteger;
+import java.net.ConnectException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.io.ByteArrayOutputStream;
@@ -127,6 +128,23 @@ public class NodeReference {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public boolean hasFailed() {
+        SSLSocket Socket = null;
+        try {
+            SSLSocketFactory factory =  (SSLSocketFactory)SSLSocketFactory.getDefault();
+            Socket = (SSLSocket) factory.createSocket(this.ip, this.port);
+            Socket.startHandshake();
+            return false;
+        }
+        catch(ConnectException e) {
+            return true;
+        } 
+        catch(IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private BigInteger getHash(String ip, int port) throws NoSuchAlgorithmException {

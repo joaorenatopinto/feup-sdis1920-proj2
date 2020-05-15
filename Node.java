@@ -126,6 +126,14 @@ public class Node {
         }
     }
 
+    public void checkPredecessor() {
+        if(predecessor.hasFailed()) this.predecessor = null;
+    }
+
+    public void checkSuccessor() {
+        if(successor.hasFailed()) this.successor = this.ownReference;
+    }
+
     public boolean clockwiseInclusiveBetween(BigInteger id, BigInteger id1, BigInteger id2) {
         if(id2.compareTo(id1) == 1) {
             return id.compareTo(id1) == 1 && id.compareTo(id2) <= 0;
