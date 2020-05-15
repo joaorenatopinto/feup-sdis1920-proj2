@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import javax.net.ssl.SSLSocket; 
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import Storage.ChunkInfo;
@@ -35,7 +35,7 @@ public class PeerMethods implements PeerInterface {
             }
         });
     }
-    
+
     public void restore(String path) {
         Peer.pool.execute(() -> {
             try {
@@ -105,9 +105,13 @@ public class PeerMethods implements PeerInterface {
     }
 
 
+    /**
+     * Return contents of chunk of file
+     */
     public byte[] restoreChunk(String file_id, int chunk_no, int rep_degree) throws IOException, NoSuchAlgorithmException {
         byte[] chunk = null;
 
+        /* For each owner of a copy of the chunk */
         for(int i = 0; i < rep_degree; i++) {
             BigInteger chunkChordId = getHash(file_id, chunk_no, i);
             System.out.println(">>> Chunk Hash: " + chunkChordId + " <<<");
@@ -115,33 +119,44 @@ public class PeerMethods implements PeerInterface {
             System.out.println(">>> Successor ID: " + receiverNode.id + " <<<");
             byte[] msg = MessageBuilder.getGetchunkMessage(file_id, chunk_no);
             SSLSocket Socket = null;
+
+
+            /* Send GETCHUNK message and wait response */
             try {
                 SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                 Socket = (SSLSocket) factory.createSocket(receiverNode.ip, receiverNode.port);
-
                 Socket.startHandshake();
-
                 DataOutputStream dataOut = new DataOutputStream(Socket.getOutputStream());
                 InputStream in = Socket.getInputStream();
-
                 dataOut.write(msg);
 
+
+                /* Get CHUNK message from peer */
                 final byte[] fromClient = new byte[65000];
                 int msg_size;
                 if ((msg_size = in.read(fromClient)) != -1) {
                     final ByteArrayOutputStream message = new ByteArrayOutputStream();
                     message.write(fromClient, 0, msg_size);
-                    if (new String(fromClient).equals("ERROR")) {
-                        System.out.println("~~~~~~~~~~~~~~");
-                        System.out.println("errrrrrrooooooooooooo");
-                        System.out.println("~~~~~~~~~~~~~~");
+                    String headerString = new String(fromClient).split("\\r?\\n")[0];
+                    if (headerString.equals("ERROR")) {
+                        System.out.println("Warning: error while restoring chunk");
                         Socket.close();
                         continue;
                     } else {
-                        // TODO: CHECK IF FILE ID AND CHUNK NO MATCH (IF YES:)
-                        chunk = message.toByteArray();
-                        Socket.close();
-                        break;
+                        String[] tokens = headerString.split(" ");
+                        if(tokens[0].equals("PROTOCOL") && tokens[1].equals("CHUNK")) {
+                            if(tokens[2].equals(file_id) && tokens[3].equals(String.valueOf(chunk_no))) {
+                                chunk = message.toByteArray();
+                                Socket.close();
+                                break;
+                            } else {
+                                System.out.println("Warning: wrong chunk while restoring chunk");
+                                System.out.println("       : received " + tokens[2] + "_" + tokens[3] + " | wanted" + file_id + "_" + chunk_no);
+                            }
+                        } else {
+                            System.out.println("Warning: wrong message while restoring chunk");
+                            System.out.println("       : received \"" + tokens[0] + " " + tokens[1] + "\" | wanted \"PROTOCOL CHUNK\"");
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -285,7 +300,7 @@ public class PeerMethods implements PeerInterface {
                    if(fromServer.equals("SUCCESS")) {
                        // If Node receives a sucess as answer we increment the chunk current Replication Degree on the System.
                         file.getChunkByNo(chunk_no).IncrementCurr_rep_degree();
-                   } 
+                   }
                    if (fromServer.equals("ERROR")) {
                        // TODO: IF ERROR AND HANDLE IT NEEDS A RETRY WITH SOME OTHER ALGORITHM
                         System.out.print("ERROR: Peer couldn't store chunk.");
@@ -372,7 +387,7 @@ public class PeerMethods implements PeerInterface {
                 Peer.storage.RemoveFromCurr_storage(chunk_file.length());
                 freed_space += chunk_file.length();
                 Peer.storage.removeStoredChunk(to_remove);
-                // TODO: INFORM NODES THAT FILE WAS DELETED ??? 
+                // TODO: INFORM NODES THAT FILE WAS DELETED ???
                 chunk_file.delete();
             }
             else if(max_repdegree_dif > 0) {
@@ -380,7 +395,7 @@ public class PeerMethods implements PeerInterface {
                 Peer.storage.RemoveFromCurr_storage(chunk_file.length());
                 freed_space += chunk_file.length();
                 Peer.storage.removeStoredChunk(to_remove);
-                // TODO: INFORM NODES THAT FILE WAS DELETED ??? 
+                // TODO: INFORM NODES THAT FILE WAS DELETED ???
                 chunk_file.delete();
             }
             else return false;
