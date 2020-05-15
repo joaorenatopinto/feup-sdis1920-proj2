@@ -1,121 +1,148 @@
 package Storage;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.FileOutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 public class Storage {
-  private long max_storage;
-  private long curr_storage;
+  private long maxStorage;
+  private long currStorage;
 
-  private List<FileInfo> files_backed;
-  private List<ChunkInfo> chunks_Stored;
-  private int peer_id;
+  private List<FileInfo> filesBacked;
+  private List<ChunkInfo> chunksStored;
+  private int peerId;
 
-  public Storage(int peer_id) {
-    this.peer_id = peer_id;
-    this.max_storage = -1;
-    this.curr_storage = 0;
-    this.files_backed = Collections.synchronizedList(new ArrayList<FileInfo>());
-    this.chunks_Stored = Collections.synchronizedList(new ArrayList<ChunkInfo>());
+  /**
+   * Storage constructor.
+   */
+  public Storage(int peerId) {
+    this.peerId = peerId;
+    this.maxStorage = -1;
+    this.currStorage = 0;
+    this.filesBacked = Collections.synchronizedList(new ArrayList<FileInfo>());
+    this.chunksStored = Collections.synchronizedList(new ArrayList<ChunkInfo>());
   }
 
   /**
-   * Get maximum capacity for file storage
+   * Get maximum capacity for file storage.
    *
    * @return maximum size of storage
    */
-  public long getMax_storage() {
-    return max_storage;
+  public long getMaxStorage() {
+    return maxStorage;
   }
 
   /**
-   * Get the size of occupied storage
+   * Get the size of occupied storage.
    *
    * @return occupied storage size
    */
-  public long getCurr_storage() {
-    return curr_storage;
+  public long getCurrStorage() {
+    return currStorage;
   }
 
   /**
-   * @param max_storage the max_storage to set
+   * Set maximum storage size.
+   * @param maxStorage the maxStorage to set
    */
-  public void setMax_storage(long max_storage) {
-    this.max_storage = max_storage;
+  public void setMaxStorage(long maxStorage) {
+    this.maxStorage = maxStorage;
   }
 
   /**
-   * @param curr_storage the curr_storage to set
+   * Set current storage size.
+   * @param currStorage the currStorage to set
    */
-  public void setCurr_storage(long curr_storage) {
-    this.curr_storage = curr_storage;
+  public void setCurrStorage(long currStorage) {
+    this.currStorage = currStorage;
   }
 
-  public void addToCurr_storage(long storage) {
-    this.curr_storage = curr_storage + storage;
+  public void addToCurrStorage(long storage) {
+    this.currStorage = currStorage + storage;
   }
 
-  public void RemoveFromCurr_storage(long storage) {
-    this.curr_storage = curr_storage - storage;
+  public void removeFromCurrStorage(long storage) {
+    this.currStorage = currStorage - storage;
   }
 
   /**
-   * @return the chunks_Stored
+   * Get stored chunks.
+   * @return the chunksStored
    */
-  public List<ChunkInfo> getChunks_Stored() {
-    return chunks_Stored;
+  public List<ChunkInfo> getChunksStored() {
+    return chunksStored;
   }
 
   /**
-   * @return the files_backed
+   * Get files backed up.
+   * @return the filesBacked
    */
-  public List<FileInfo> getFiles_backed() {
-    return files_backed;
+  public List<FileInfo> getFilesBacked() {
+    return filesBacked;
   }
 
-  public FileInfo getFileInfo(String file_id) {
+  /**
+   * Get file.
+   */
+  public FileInfo getFileInfo(String fileID) {
     try {
-      Optional<FileInfo> result = files_backed.stream().filter(file -> file.getId().equals(file_id)).findFirst();
-      if (result.isPresent())
+      Optional<FileInfo> result = filesBacked.stream().filter(file -> file.getId()
+          .equals(fileID)).findFirst();
+      if (result.isPresent()) {
         return result.get();
+      }
     } catch (Exception e) {
       return null;
     }
     return null;
   }
 
-  public FileInfo getFileInfoByFilePath(String file_path) {
-    Optional<FileInfo> result = files_backed.stream().filter(file -> file.getPath().equals(file_path)).findFirst();
+  /**
+   * Get file.
+   */
+  public FileInfo getFileInfoByFilePath(String filePath) {
+    Optional<FileInfo> result = filesBacked.stream().filter(file -> file.getPath()
+        .equals(filePath)).findFirst();
     return result.orElse(null);
   }
 
-  public ChunkInfo getStoredChunkInfo(String file_id, int chunk_no) {
-    Optional<ChunkInfo> result = chunks_Stored.stream()
-        .filter(ch -> ((ch.getFileID().equals(file_id)) && (ch.getNo() == chunk_no))).findFirst();
+  /**
+   * Get stored chunk.
+   */
+  public ChunkInfo getStoredChunkInfo(String fileID, int chunkNo) {
+    Optional<ChunkInfo> result = chunksStored.stream()
+        .filter(ch -> ((ch.getFileID().equals(fileID)) && (ch.getNo() == chunkNo))).findFirst();
     return result.orElse(null);
   }
 
   public void addBackedFile(FileInfo file) {
-    files_backed.add(file);
+    filesBacked.add(file);
   }
 
   public void addStoredChunk(ChunkInfo chunk) {
-    chunks_Stored.add(chunk);
+    chunksStored.add(chunk);
   }
 
   public void removeBackedFile(FileInfo file) {
-    files_backed.remove(file);
+    filesBacked.remove(file);
   }
 
   public void removeStoredChunk(ChunkInfo chunk) {
-    chunks_Stored.remove(chunk);
+    chunksStored.remove(chunk);
   }
 
+  /**
+   * Save file.
+   */
   public void saveFile(byte[] chunk) {
-    String path = "Peers/dir" + (peer_id);
+    String path = "Peers/dir" + (peerId);
     File directory = new File(path);
 
     directory.mkdir();
@@ -130,8 +157,9 @@ public class Storage {
       file.createNewFile();
       OutputStream os = new FileOutputStream(file);
       os.write(parts.get(1));
-      this.addStoredChunk(new ChunkInfo(Integer.parseInt(chunkpieces[3]), chunkpieces[2], 0, (int) file.length()));
-      this.addToCurr_storage(file.length());
+      this.addStoredChunk(new ChunkInfo(Integer.parseInt(chunkpieces[3]),
+          chunkpieces[2], 0, (int) file.length()));
+      this.addToCurrStorage(file.length());
       os.close();
     } catch (IOException e) {
       e.printStackTrace();
@@ -139,6 +167,9 @@ public class Storage {
     }
   }
 
+  /**
+   * Patter match.
+   */
   public static boolean isMatch(byte[] pattern, byte[] input, int pos) {
     for (int i = 0; i < pattern.length; i++) {
       if (pattern[i] != input[pos + i]) {
@@ -148,6 +179,9 @@ public class Storage {
     return true;
   }
 
+  /**
+   * Split.
+   */
   public static List<byte[]> split(byte[] input) {
     byte[] pattern = "\r\n\r\n".getBytes();
     List<byte[]> l = new LinkedList<>();
@@ -164,6 +198,9 @@ public class Storage {
     return l;
   }
 
+  /**
+   * Restore chunk.
+   */
   public void restoreChunk(byte[] chunk) {
     String chunkTxt = new String(chunk);
     List<byte[]> parts = split(chunk);
@@ -171,7 +208,7 @@ public class Storage {
 
     String fileName = chunkpieces[2] + "_" + chunkpieces[3];
 
-    String path = "Peers/dir" + (peer_id) + "/temp/" + chunkpieces[2];
+    String path = "Peers/dir" + (peerId) + "/temp/" + chunkpieces[2];
     File directory = new File(path);
     directory.mkdir();
 

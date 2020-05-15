@@ -1,3 +1,4 @@
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -5,7 +6,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
-import java.io.ByteArrayOutputStream;
 
 import javax.net.ssl.SSLSocket;
 
@@ -32,13 +32,13 @@ public class MessageProcessor implements Runnable {
       return;
     }
     byte[] fromClient = new byte[65000];
-    int msg_size;
+    int msgSize;
     try {
-      if ((msg_size = in.read(fromClient)) != -1) {
+      if ((msgSize = in.read(fromClient)) != -1) {
         ByteArrayOutputStream message = new ByteArrayOutputStream();
-        message.write(fromClient, 0, msg_size);
+        message.write(fromClient, 0, msgSize);
 
-        // System.out.println(msg_size);
+        // System.out.println(msgSize);
         if (new String(fromClient).equals("Bye.")) {
           dataOut.write("Bye.".getBytes());
           clientSocket.close();
@@ -58,6 +58,9 @@ public class MessageProcessor implements Runnable {
 
   }
 
+  /**
+   * Process message.
+   */
   public byte[] processMessage(byte[] msg) throws NoSuchAlgorithmException {
     String[] msgParts = new String(msg).split("\\s+|\n");
     NodeReference node = null;
@@ -73,24 +76,27 @@ public class MessageProcessor implements Runnable {
         case "GETPREDECESSOR":
           node = Peer.chordNode.predecessor;
           break;
+        default:
+          break;
       }
     } else if (msgParts[0].equals("PROTOCOL")) {
-      String file_id;
-      int chunk_no;
+      String fileID;
+      int chunkNo;
       switch (msgParts[1]) {
         case "PUTCHUNK":
           // Save file
-          if (Peer.saveChunk(msg))
+          if (Peer.saveChunk(msg)) {
             return "SUCCESS".getBytes();
+          }
           return "ERROR".getBytes();
         case "GETCHUNK":
           // Get the information of the needed chunk
-          file_id = msgParts[2];
-          chunk_no = Integer.parseInt(msgParts[3]);
+          fileID = msgParts[2];
+          chunkNo = Integer.parseInt(msgParts[3]);
           byte[] chunk;
           try {
             // Send Chunk
-            chunk = Peer.retrieveChunk(file_id, chunk_no);
+            chunk = Peer.retrieveChunk(fileID, chunkNo);
           } catch (IOException e) {
             // If it catches an IOException it means it couldn't retrieve the chunk so it
             // informs the node
@@ -99,11 +105,12 @@ public class MessageProcessor implements Runnable {
           return chunk;
         case "DELETE":
           // Get the information of the needed chunk
-          file_id = msgParts[2];
-          chunk_no = Integer.parseInt(msgParts[3]);
+          fileID = msgParts[2];
+          chunkNo = Integer.parseInt(msgParts[3]);
           // Delete chunk
-          if (Peer.deleteSavedChunk(file_id, chunk_no))
+          if (Peer.deleteSavedChunk(fileID, chunkNo)) {
             return "SUCCESS".getBytes();
+          }
           return "ERROR".getBytes();
         default:
           break;
@@ -111,7 +118,8 @@ public class MessageProcessor implements Runnable {
     }
     if (node != null) {
       return ("CHORD NODE " + node.ip + " " + node.port).getBytes();
-    } else
+    } else {
       return null;
+    }
   }
 }

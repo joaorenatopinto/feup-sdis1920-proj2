@@ -2,7 +2,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class MessageBuilder {
-  public static byte[] getPutchunkMessage(String fileId, int chunkNo, byte[] body) throws IOException {
+  /**
+   * Return byte[] of PUTCHUNK message.
+   */
+  public static byte[] getPutchunkMessage(String fileId, int chunkNo, byte[] body)
+      throws IOException {
     String msg = getMessage("PUTCHUNK", fileId, chunkNo);
     // msg += "\r\n"; // CRLF
     // msg += "\r\n"; // CRLF
@@ -16,6 +20,9 @@ public class MessageBuilder {
     return message.toByteArray();
   }
 
+  /**
+   * Return byte[] of CHUNK message.
+   */
   public static byte[] getChunkMessage(String fileId, int chunkNo, byte[] body) throws IOException {
     String msg = getMessage("CHUNK", fileId, chunkNo);
     // msg += "\r\n"; // CRLF
@@ -30,6 +37,9 @@ public class MessageBuilder {
     return message.toByteArray();
   }
 
+  /**
+   * Return byte[] of GETCHUNK message.
+   */
   public static byte[] getGetchunkMessage(String fileId, int chunkNo) throws IOException {
     String msg = getMessage("GETCHUNK", fileId, chunkNo);
     // msg += "\r\n"; // CRLF
@@ -40,6 +50,9 @@ public class MessageBuilder {
     return message.toByteArray();
   }
 
+  /**
+   * Return byte[] of DELETE message.
+   */
   public static byte[] getDeleteMessage(String fileId, int chunkNo) throws IOException {
     String msg = getMessage("DELETE", fileId, chunkNo);
     ByteArrayOutputStream message = new ByteArrayOutputStream();

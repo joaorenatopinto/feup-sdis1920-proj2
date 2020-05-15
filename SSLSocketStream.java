@@ -13,28 +13,31 @@ public class SSLSocketStream implements java.lang.AutoCloseable {
   InputStream in;
   SSLSocket socket;
 
+  /**
+   * SSLSocket to read from and write to.
+   */
   public SSLSocketStream(String ip, int port) throws IOException {
-  SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-  socket = (SSLSocket) factory.createSocket(ip, port);
-  socket.startHandshake();
-  out = new DataOutputStream(socket.getOutputStream());
-  bufferedIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-  in = socket.getInputStream();
+    SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+    socket = (SSLSocket) factory.createSocket(ip, port);
+    socket.startHandshake();
+    out = new DataOutputStream(socket.getOutputStream());
+    bufferedIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    in = socket.getInputStream();
   }
 
   public void write(byte[] b) throws IOException {
-  out.write(b);
+    out.write(b);
   }
 
   public int read(byte[] buf) throws IOException {
-  return in.read(buf);
+    return in.read(buf);
   }
 
   public String readLine() throws IOException {
-  return bufferedIn.readLine();
+    return bufferedIn.readLine();
   }
 
   public void close() throws IOException {
-  socket.close();
+    socket.close();
   }
 }

@@ -1,10 +1,11 @@
 import java.io.IOException;
 import java.math.BigInteger;
-import java.rmi.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
 
 public interface PeerInterface extends Remote {
-  void backup(String path, int rep_degree) throws RemoteException;
+  void backup(String path, int repDegree) throws RemoteException;
 
   void shutdown() throws RemoteException;
 
@@ -14,7 +15,7 @@ public interface PeerInterface extends Remote {
 
   void delete(String path) throws RemoteException;
 
-  void space_reclaim(long new_max_storage) throws RemoteException, IOException;
+  void spaceReclaim(long newMaxStorage) throws RemoteException, IOException;
 
-  void print_state() throws RemoteException;
+  void printState() throws RemoteException;
 }

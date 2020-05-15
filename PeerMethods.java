@@ -26,7 +26,7 @@ public class PeerMethods implements PeerInterface {
   public void backup(String path, int repDegree) {
     Peer.pool.execute(() -> {
       try {
-        chunkify_file(path, repDegree);
+        chunkifyFile(path, repDegree);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -65,7 +65,8 @@ public class PeerMethods implements PeerInterface {
   public void restoreFile(String filePath) {
     FileInfo file = Peer.storage.getFileInfoByFilePath(filePath);
     if (file == null) {
-      System.out.println("You can only restore files that have been previously backed up by the system.");
+      System.out.println("You can only restore files that have"
+          + "been previously backed up by the system.");
       return;
     }
     String fileId = file.getId();
@@ -73,7 +74,7 @@ public class PeerMethods implements PeerInterface {
 
     for (int chunkNo = 1; chunkNo <= numChunks; chunkNo++) {
       try {
-        byte[] chunk = restoreChunk(fileId, chunkNo, file.getRep_degree());
+        byte[] chunk = restoreChunk(fileId, chunkNo, file.getRepDegree());
         if (chunk != null) {
           Peer.storage.restoreChunk(chunk);
         } else {
@@ -84,7 +85,7 @@ public class PeerMethods implements PeerInterface {
         e.printStackTrace();
       }
     }
-    dechunky_file(filePath);
+    dechunkyFile(filePath);
   }
 
   /**
@@ -93,7 +94,8 @@ public class PeerMethods implements PeerInterface {
   public void deleteFile(String filePath) throws IOException {
     FileInfo file = Peer.storage.getFileInfoByFilePath(filePath);
     if (file == null) {
-      System.out.println("You can only delete files that have been previously backed up by the system.");
+      System.out.println("You can only delete files that have"
+          + "been previously backed up by the system.");
       return;
     }
     String fileId = file.getId();
@@ -101,7 +103,7 @@ public class PeerMethods implements PeerInterface {
 
     for (int chunkNo = 1; chunkNo <= numChunks; chunkNo++) {
       try {
-        boolean success = deleteChunk(fileId, chunkNo, file.getRep_degree());
+        boolean success = deleteChunk(fileId, chunkNo, file.getRepDegree());
         if (!success) {
           System.out.println("Couldn't delete the chunk number " + chunkNo);
         }
@@ -114,7 +116,7 @@ public class PeerMethods implements PeerInterface {
   }
 
   /**
-   * Get reference to node with chunk chunk_no from file file_id.
+   * Get reference to node with chunk chunkNo from file fileID.
    */
   private NodeReference getNode(String fileId, int chunkNo, int i) throws NoSuchAlgorithmException {
     BigInteger chunkChordId = getHash(fileId, chunkNo, i);
@@ -127,7 +129,8 @@ public class PeerMethods implements PeerInterface {
   /**
    * Return contents of chunk of file.
    */
-  public byte[] restoreChunk(String fileId, int chunkNo, int repDegree) throws IOException, NoSuchAlgorithmException {
+  public byte[] restoreChunk(String fileId, int chunkNo, int repDegree)
+      throws IOException, NoSuchAlgorithmException {
     byte[] chunk = null;
 
     /* For each owner of a copy of the chunk */
@@ -157,12 +160,13 @@ public class PeerMethods implements PeerInterface {
                 break;
               } else {
                 System.out.println("Warning: wrong chunk while restoring chunk");
-                System.out
-                    .println("   : received " + tokens[2] + "_" + tokens[3] + " | wanted" + fileId + "_" + chunkNo);
+                System.out.println("   : received " + tokens[2] + "_"
+                      + tokens[3] + " | wanted" + fileId + "_" + chunkNo);
               }
             } else {
               System.out.println("Warning: wrong message while restoring chunk");
-              System.out.println("   : received \"" + tokens[0] + " " + tokens[1] + "\" | wanted \"PROTOCOL CHUNK\"");
+              System.out.println("   : received \""
+                  + tokens[0] + " " + tokens[1] + "\" | wanted \"PROTOCOL CHUNK\"");
             }
           }
         }
@@ -176,7 +180,8 @@ public class PeerMethods implements PeerInterface {
   /**
    * Delete chunk from storage.
    */
-  public boolean deleteChunk(String fileId, int chunkNo, int repDegree) throws IOException, NoSuchAlgorithmException {
+  public boolean deleteChunk(String fileId, int chunkNo, int repDegree)
+        throws IOException, NoSuchAlgorithmException {
 
     for (int i = 0; i < repDegree; i++) {
       NodeReference receiverNode = getNode(fileId, chunkNo, i);
@@ -218,7 +223,8 @@ public class PeerMethods implements PeerInterface {
   /**
    * Divide file into chunks.
    */
-  public void chunkify_file(String filePath, int repDegree) throws IOException, NoSuchAlgorithmException {
+  public void chunkifyFile(String filePath, int repDegree)
+      throws IOException, NoSuchAlgorithmException {
     // file handling
     InputStream is;
     try {
@@ -255,7 +261,7 @@ public class PeerMethods implements PeerInterface {
   /**
    * Build file from chunks.
    */
-  public void dechunky_file(String filePath) {
+  public void dechunkyFile(String filePath) {
     FileInfo file = Peer.storage.getFileInfoByFilePath(filePath);
     String fileId = file.getId();
     int numChunks = file.getChunks().size();
@@ -264,13 +270,14 @@ public class PeerMethods implements PeerInterface {
     File restoredPath = new File(restoredDirPath);
     restoredPath.mkdir();
 
-    File restoredFile = new File(restoredDirPath + "/" + filePath.split("/")[filePath.split("/").length - 1]);
+    File restoredFile = new File(restoredDirPath + "/"
+                    + filePath.split("/")[filePath.split("/").length - 1]);
     try {
       restoredFile.createNewFile();
       OutputStream os = new FileOutputStream(restoredFile);
       for (int i = 1; i <= numChunks; i++) {
-        File chunk = new File(
-            "Peers/dir" + Integer.toString(Peer.id) + "/temp" + "/" + fileId + "/" + fileId + "_" + i);
+        File chunk = new File("Peers/dir" + Integer.toString(Peer.id)
+                  + "/temp" + "/" + fileId + "/" + fileId + "_" + i);
         os.write(Files.readAllBytes(chunk.toPath()));
         chunk.delete();
         new File("Peers/dir" + Integer.toString(Peer.id) + "/temp" + "/" + fileId).delete();
@@ -300,7 +307,7 @@ public class PeerMethods implements PeerInterface {
           if (fromServer.equals("SUCCESS")) {
             // If Node receives a sucess as answer we increment the chunk current
             // Replication Degree on the System.
-            file.getChunkByNo(chunkNo).IncrementCurr_rep_degree();
+            file.getChunkByNo(chunkNo).incrementCurrRepDegree();
           }
           if (fromServer.equals("ERROR")) {
             // TODO: IF ERROR AND HANDLE IT NEEDS A RETRY WITH SOME OTHER ALGORITHM
@@ -319,9 +326,9 @@ public class PeerMethods implements PeerInterface {
    * Num sei.
    */
   public static boolean saveChunk(byte[] chunk) {
-    long diff = (Peer.storage.getCurr_storage() + chunk.length) - Peer.storage.getMax_storage();
-    if (diff > 0 && Peer.storage.getMax_storage() != -1) {
-      // if (!manage_storage(diff, false)){
+    long diff = (Peer.storage.getCurrStorage() + chunk.length) - Peer.storage.getMaxStorage();
+    if (diff > 0 && Peer.storage.getMaxStorage() != -1) {
+      // if (!manageStorage(diff, false)){
       System.out.println("No Space Available");
       return false;
       // }
@@ -366,15 +373,15 @@ public class PeerMethods implements PeerInterface {
   /**
    * Reclaim storage space.
    */
-  public void space_reclaim(long newMaxStorage) throws IOException {
+  public void spaceReclaim(long newMaxStorage) throws IOException {
     newMaxStorage *= 1000;
     if (newMaxStorage < 0) {
-      Peer.storage.setMax_storage(-1);
+      Peer.storage.setMaxStorage(-1);
     } else {
-      long spaceToFree = Peer.storage.getCurr_storage() - newMaxStorage;
-      Peer.storage.setMax_storage(newMaxStorage);
+      long spaceToFree = Peer.storage.getCurrStorage() - newMaxStorage;
+      Peer.storage.setMaxStorage(newMaxStorage);
       if (spaceToFree > 0) {
-        manage_storage(spaceToFree, true);
+        manageStorage(spaceToFree, true);
       }
     }
     return;
@@ -383,9 +390,9 @@ public class PeerMethods implements PeerInterface {
   /**
    * Delete chunks to free space.
    */
-  public static boolean manage_storage(long spaceToFree, boolean mustDelete) throws IOException {
+  public static boolean manageStorage(long spaceToFree, boolean mustDelete) throws IOException {
     // If Max Storage is -1 it means it is unlimited
-    if (Peer.storage.getMax_storage() == -1) {
+    if (Peer.storage.getMaxStorage() == -1) {
       return true;
     }
     int maxRepdegreeDif;
@@ -394,8 +401,8 @@ public class PeerMethods implements PeerInterface {
     while (freedSpace < spaceToFree) {
       maxRepdegreeDif = -10;
       toRemove = null;
-      for (ChunkInfo chunk : Peer.storage.getChunks_Stored()) {
-        int repDegreeDif = chunk.getCurr_rep_degree() - chunk.getWanted_rep_degree();
+      for (ChunkInfo chunk : Peer.storage.getChunksStored()) {
+        int repDegreeDif = chunk.getCurrRepDegree() - chunk.getWantedRepDegree();
         if (repDegreeDif > maxRepdegreeDif) {
           maxRepdegreeDif = repDegreeDif;
           toRemove = chunk;
@@ -403,14 +410,14 @@ public class PeerMethods implements PeerInterface {
       }
       if (mustDelete) {
         File chunkFile = new File("Peers/" + "dir" + Peer.id + "/" + toRemove.getChunkID());
-        Peer.storage.RemoveFromCurr_storage(chunkFile.length());
+        Peer.storage.removeFromCurrStorage(chunkFile.length());
         freedSpace += chunkFile.length();
         Peer.storage.removeStoredChunk(toRemove);
         // TODO: INFORM NODES THAT FILE WAS DELETED ???
         chunkFile.delete();
       } else if (maxRepdegreeDif > 0) {
         File chunkFile = new File("Peers/" + "dir" + Peer.id + "/" + toRemove);
-        Peer.storage.RemoveFromCurr_storage(chunkFile.length());
+        Peer.storage.removeFromCurrStorage(chunkFile.length());
         freedSpace += chunkFile.length();
         Peer.storage.removeStoredChunk(toRemove);
         // TODO: INFORM NODES THAT FILE WAS DELETED ???
@@ -425,26 +432,27 @@ public class PeerMethods implements PeerInterface {
   /**
    * Print storage state.
    */
-  public void print_state() {
+  public void printState() {
     System.out.println("Files Backed Up:");
-    for (FileInfo file : Peer.storage.getFiles_backed()) {
+    for (FileInfo file : Peer.storage.getFilesBacked()) {
       System.out.println(file.toString());
     }
     System.out.println("\nChunks Stored:\n-");
-    for (ChunkInfo chunkInfo : Peer.storage.getChunks_Stored()) {
+    for (ChunkInfo chunkInfo : Peer.storage.getChunksStored()) {
       System.out.println(chunkInfo.toString());
       System.out.println('-');
     }
-    if (Peer.storage.getMax_storage() == 0) {
+    if (Peer.storage.getMaxStorage() == 0) {
       System.out.println("Storage Capacity: Unlimited");
     } else {
-      System.out.println("Storage Capacity: " + (Peer.storage.getMax_storage() / 1000) + " KBytes");
+      System.out.println("Storage Capacity: " + (Peer.storage.getMaxStorage() / 1000) + " KBytes");
     }
-    System.out.println("Storage Used: " + (Peer.storage.getCurr_storage() / 1000) + " KBytes");
+    System.out.println("Storage Used: " + (Peer.storage.getCurrStorage() / 1000) + " KBytes");
     return;
   }
 
-  private BigInteger getHash(String fileId, int chunkNo, int copyNo) throws NoSuchAlgorithmException {
+  private BigInteger getHash(String fileId, int chunkNo, int copyNo)
+      throws NoSuchAlgorithmException {
     String unhashedId = fileId + "_" + chunkNo + "_" + copyNo;
     MessageDigest md = MessageDigest.getInstance("SHA-1");
     byte[] messageDigest = md.digest(unhashedId.getBytes());

@@ -1,3 +1,4 @@
+import Storage.*;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -6,17 +7,19 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import Storage.*;
 
 public class Peer extends PeerMethods {
-  static public Node chordNode;
-  static public boolean shutdown = false;
-  static public String ipAddress = null;
-  static public int portNumber;
-  static public ScheduledExecutorService pool;
-  static public Storage storage;
-  static public int id;
+  public static Node chordNode;
+  public static boolean shutdown = false;
+  public static String ipAddress = null;
+  public static int portNumber;
+  public static ScheduledExecutorService pool;
+  public static Storage storage;
+  public static int id;
 
+  /**
+   * Main.
+   */
   public static void main(String[] args) throws NoSuchAlgorithmException {
 
     // java Peer 9 localhost 8009 JOIN localhost 8003
@@ -27,6 +30,9 @@ public class Peer extends PeerMethods {
     storage = new Storage(id);
   }
 
+  /**
+   * Run.
+   */
   public void run(String[] args) throws NoSuchAlgorithmException {
     System.setProperty("javax.net.ssl.trustStore", "truststore");
     System.setProperty("javax.net.ssl.trustStorePassword", "123456");
@@ -35,8 +41,8 @@ public class Peer extends PeerMethods {
         || (args.length == 6 && args[3].equalsIgnoreCase("JOIN")))) {
       System.err.println("Usage: Peer <PeerID> <IpAddress> <PortNumber> <ChordOption> :");
       System.err.println("   Create Option: Peer <PeerID> <IpAddress> <PortNumber> create");
-      System.err.println(
-          "   Join Option: Peer <PeerID> <IpAddress> <PortNumber>  join <ChordMemberIpAddress> <ChordMemberPortNumber>");
+      System.err.println("   Join Option: Peer <PeerID> <IpAddress> <PortNumber>"
+          + "join <ChordMemberIpAddress> <ChordMemberPortNumber>");
       System.exit(-1);
     }
     try {

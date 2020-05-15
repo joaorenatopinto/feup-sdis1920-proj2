@@ -1,11 +1,9 @@
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -27,28 +25,20 @@ public class NodeReference {
     this.id = getHash(this.ip, this.port);
   }
 
+  /**
+   * Find successor.
+   */
   public NodeReference findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
     String ipAddress;
     int portNumber;
-    SSLSocket Socket = null;
-    try {
-      SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-      Socket = (SSLSocket) factory.createSocket(this.ip, this.port);
-
-      Socket.startHandshake();
-
-      DataOutputStream out = new DataOutputStream(Socket.getOutputStream());
-      InputStream in = Socket.getInputStream();
-
+    try (SSLSocketStream socket = new SSLSocketStream(ip, port)) {
       byte[] fromClient = new byte[65000];
-      int msg_size;
+      int msgSize;
 
-      out.write(("CHORD FINDSUCCESSOR " + id).getBytes());
-      // System.out.println("YOU: " + "CHORD FINDSUCCESSOR " + id);
-
-      if ((msg_size = in.read(fromClient)) != -1) {
+      socket.write(("CHORD FINDSUCCESSOR " + id).getBytes());
+      if ((msgSize = socket.read(fromClient)) != -1) {
         ByteArrayOutputStream message = new ByteArrayOutputStream();
-        message.write(fromClient, 0, msg_size);
+        message.write(fromClient, 0, msgSize);
         String msg = message.toString();
         // System.out.println("Server: " + msg);
         String[] answer = msg.split("\\s+|\n");
@@ -59,52 +49,39 @@ public class NodeReference {
       } else {
         System.out.println("ERROR: Chord findSuccessor answer was empty.");
       }
-
     } catch (IOException e) {
       e.printStackTrace();
     }
     return null;
   }
 
+  /**
+   * Notify.
+   */
   public void notify(NodeReference n) {
-    SSLSocket Socket = null;
-    try {
-      SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-      Socket = (SSLSocket) factory.createSocket(this.ip, this.port);
-
-      Socket.startHandshake();
-
-      DataOutputStream out = new DataOutputStream(Socket.getOutputStream());
-
-      out.write(("CHORD NOTIFY " + n.ip + " " + n.port).getBytes());
-      // System.out.println("YOU: " + "CHORD NOTIFY " + n.ip + " " + n.port);
-
+    try (SSLSocketStream socket = new SSLSocketStream(ip, port)) {
+      socket.write(("CHORD NOTIFY " + n.ip + " " + n.port).getBytes());
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
+  /**
+   * Get predecessor.
+   */
   public NodeReference getPredecessor() throws NoSuchAlgorithmException {
     String ipAddress;
     String portNumber;
-    SSLSocket Socket = null;
 
-    try {
-      SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-      Socket = (SSLSocket) factory.createSocket(this.ip, this.port);
-      Socket.startHandshake();
-
-      DataOutputStream out = new DataOutputStream(Socket.getOutputStream());
-      InputStream in = Socket.getInputStream();
-      // String fromServer;
+    try (SSLSocketStream socket = new SSLSocketStream(ip, port)) {
       byte[] fromClient = new byte[65000];
-      int msg_size;
+      int msgSize;
 
-      out.write(("CHORD GETPREDECESSOR").getBytes());
+      socket.write(("CHORD GETPREDECESSOR").getBytes());
       // System.out.println("YOU: " + "CHORD FINDSUCCESSOR " + id);
-      if ((msg_size = in.read(fromClient)) != -1) {
+      if ((msgSize = socket.read(fromClient)) != -1) {
         ByteArrayOutputStream message = new ByteArrayOutputStream();
-        message.write(fromClient, 0, msg_size);
+        message.write(fromClient, 0, msgSize);
         String msg = message.toString();
         // System.out.println("Server: " + msg);
         String[] answer = msg.split("\\s+|\n");
@@ -125,12 +102,12 @@ public class NodeReference {
     return null;
   }
 
+  /**
+   * Failed? .
+   */
   public boolean hasFailed() {
-    SSLSocket Socket = null;
-    try {
-      SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-      Socket = (SSLSocket) factory.createSocket(this.ip, this.port);
-      Socket.startHandshake();
+    try (SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(ip, port)) {
+      socket.startHandshake();
       return false;
     } catch (ConnectException e) {
       return true;

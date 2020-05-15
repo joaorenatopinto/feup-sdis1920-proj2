@@ -9,26 +9,35 @@ public class Node {
 
   NodeReference successor;
   NodeReference predecessor;
-  NodeReference[] finger_table;
+  NodeReference[] fingerTable;
   NodeReference ownReference;
 
   private static int M = 32;
 
+  /**
+   * Node constructor.
+   */
   public Node(String ip, int port, Peer peer) throws NoSuchAlgorithmException {
     this.ip = ip;
     this.port = port;
     this.id = getHash(ip, port);
-    this.finger_table = new NodeReference[M];
+    this.fingerTable = new NodeReference[M];
     this.ownReference = new NodeReference(ip, port);
   }
 
+  /**
+   * Node constructor.
+   */
   public Node(int id) {
     this.ip = null;
     this.port = 0;
     this.id = new BigInteger(Integer.toString(id));
-    this.finger_table = new NodeReference[M];
+    this.fingerTable = new NodeReference[M];
   }
 
+  /**
+   * Create circle.
+   */
   public void create() {
     System.out.println("CREATOR ID: " + this.id);
 
@@ -36,73 +45,92 @@ public class Node {
     this.successor = this.ownReference;
 
     for (int i = 0; i < M; i++) {
-      finger_table[i] = this.ownReference;
+      fingerTable[i] = this.ownReference;
     }
   }
 
+  /**
+   * Join circle.
+   */
   public void join(String ip, int port) throws NoSuchAlgorithmException {
     System.out.println("JOINER ID: " + this.id);
     this.successor = new NodeReference(ip, port).findSuccessor(this.id);
     this.predecessor = null;
 
-    finger_table[0] = this.successor;
-    for (int i = 1; i < finger_table.length; i++) {
-      BigInteger finger_id = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
-      if (clockwiseInclusiveBetween(finger_id, this.id, this.successor.id))
-        finger_table[i] = this.successor;
-
-      else
-        finger_table[i] = this.ownReference;
+    fingerTable[0] = this.successor;
+    for (int i = 1; i < fingerTable.length; i++) {
+      BigInteger fingerId = (this.id.add(new BigInteger("2").pow(i)))
+          .mod(new BigInteger("2").pow(M));
+      if (clockwiseInclusiveBetween(fingerId, this.id, this.successor.id)) {
+        fingerTable[i] = this.successor;
+      } else {
+        fingerTable[i] = this.ownReference;
+      }
     }
 
     System.out.println("SUCCESSOR: " + this.successor.id);
   }
 
-  public void join(NodeReference ring_reference) throws NoSuchAlgorithmException {
-    this.successor = ring_reference.findSuccessor(this.id);
+  /**
+   * Create circle.
+   */
+  public void join(NodeReference ringReference) throws NoSuchAlgorithmException {
+    this.successor = ringReference.findSuccessor(this.id);
     this.predecessor = null;
 
-    finger_table[0] = this.successor;
-    for (int i = 1; i < finger_table.length; i++) {
-      BigInteger finger_id = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
-      if (clockwiseInclusiveBetween(finger_id, this.id, this.successor.id))
-        finger_table[i] = this.successor;
-
-      else
-        finger_table[i] = this.ownReference;
+    fingerTable[0] = this.successor;
+    for (int i = 1; i < fingerTable.length; i++) {
+      BigInteger fingerId = (this.id.add(new BigInteger("2").pow(i)))
+          .mod(new BigInteger("2").pow(M));
+      if (clockwiseInclusiveBetween(fingerId, this.id, this.successor.id)) {
+        fingerTable[i] = this.successor;
+      } else {
+        fingerTable[i] = this.ownReference;
+      }
     }
   }
 
+  /**
+   * Find successor in circle.
+   */
   public NodeReference findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
     if (clockwiseInclusiveBetween(id, this.id, this.successor.id)) {
       return this.successor;
     } else {
       NodeReference n = closestPrecedingNode(id);
-      if (n.id.equals(this.id))
+      if (n.id.equals(this.id)) {
         return this.ownReference;
+      }
       return n.findSuccessor(id);
     }
   }
 
+  /**
+   * Closest preceding node.
+   */
   public NodeReference closestPrecedingNode(BigInteger id) {
     for (int i = M - 1; i > 0; i--) {
 
-      if (clockwiseExclusiveBetween(finger_table[i].id, this.id, id)) {
-        return finger_table[i];
+      if (clockwiseExclusiveBetween(fingerTable[i].id, this.id, id)) {
+        return fingerTable[i];
       }
     }
     // return this;
-    return this.successor; // assim, qd n se sabe ou a finger table está mal / desactualizada, manda-se
-                           // para o sucessor para pesquisa linear. no entanto, n está assim no paper
+    return this.successor;
+    /* assim, qd n se sabe ou a finger table está mal / desactualizada, manda-se
+       para o sucessor para pesquisa linear. no entanto, n está assim no paper */
   }
 
+  /**
+   * Stabilize circle.
+   */
   public void stabilize() throws NoSuchAlgorithmException {
     // System.out.println("Before get successor predecessor");
     NodeReference x = getSuccessorPredecessor();
 
     if (x != null && clockwiseExclusiveBetween(x.id, this.id, this.successor.id)) {
       this.successor = x;
-      this.finger_table[0] = this.successor;
+      this.fingerTable[0] = this.successor;
     }
     // System.out.println("Before notify");
     this.successor.notify(this.ownReference);
@@ -113,31 +141,49 @@ public class Node {
     return this.successor.getPredecessor();
   }
 
+  /**
+   * Notify circle.
+   */
   public void notify(NodeReference n) {
     if (this.predecessor == null || clockwiseExclusiveBetween(n.id, this.predecessor.id, this.id)) {
       this.predecessor = n;
     }
   }
 
+  /**
+   * Fix circle.
+   */
   public void fixFingers() throws NoSuchAlgorithmException {
     // dar fix a todos de uma só vez para não termos que estar a chamar tantas
     // vezes. pelo menos para já (testar localmente) dá jeito
     for (int i = M - 1; i >= 1; i--) {
-      BigInteger finger_id = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
-      finger_table[i] = findSuccessor(finger_id);
+      BigInteger fingerId = (this.id.add(new BigInteger("2").pow(i)))
+          .mod(new BigInteger("2").pow(M));
+      fingerTable[i] = findSuccessor(fingerId);
     }
   }
 
+  /**
+   * Check predecessor.
+   */
   public void checkPredecessor() {
-    if (predecessor.hasFailed())
+    if (predecessor.hasFailed()) {
       this.predecessor = null;
+    }
   }
 
+  /**
+   * Check successor.
+   */
   public void checkSuccessor() {
-    if (successor.hasFailed())
+    if (successor.hasFailed()) {
       this.successor = this.ownReference;
+    }
   }
 
+  /**
+   * Clockwise inclusive between.
+   */
   public boolean clockwiseInclusiveBetween(BigInteger id, BigInteger id1, BigInteger id2) {
     if (id2.compareTo(id1) == 1) {
       return id.compareTo(id1) == 1 && id.compareTo(id2) <= 0;
@@ -146,6 +192,9 @@ public class Node {
     }
   }
 
+  /**
+   * Clockwise exclusive between.
+   */
   public boolean clockwiseExclusiveBetween(BigInteger id, BigInteger id1, BigInteger id2) {
     if (id2.compareTo(id1) == 1) {
       return id.compareTo(id1) == 1 && id.compareTo(id2) == -1;
@@ -168,21 +217,23 @@ public class Node {
   @Override
   public String toString() {
     String str = "~~~~~\nID: " + this.id + "\nSuccessor:";
-    if (this.successor != null)
+    if (this.successor != null) {
       str += this.successor.id;
-    else
+    } else {
       str += null;
+    }
     str += "\nPredeccessor: ";
-    if (this.predecessor != null)
+    if (this.predecessor != null) {
       str += this.predecessor.id;
-    else
+    } else {
       str += null;
+    }
     // str+="\nFinger Table: \n";
-    // for(int i = 0; i<finger_table.length; i++) {
-    // BigInteger finger_id = (this.id.add(new BigInteger("2").pow(i))).mod(new
+    // for(int i = 0; i<fingerTable.length; i++) {
+    // BigInteger fingerId = (this.id.add(new BigInteger("2").pow(i))).mod(new
     // BigInteger("2").pow(M));
-    // str+="N" + finger_id + ": ";
-    // if(finger_table[i]!=null) str += "" + finger_table[i].id + '\n';
+    // str+="N" + fingerId + ": ";
+    // if(fingerTable[i]!=null) str += "" + fingerTable[i].id + '\n';
     // else str += "null \n";
     // }
     str += "\n~~~~~";

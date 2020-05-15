@@ -1,106 +1,114 @@
 package Storage;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.io.FileInputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.io.ByteArrayOutputStream;
-import java.security.MessageDigest;
 
 public class FileInfo {
   private String id;
-  private String path;
-  private int rep_degree;
-  private List<ChunkInfo> chunks;
+  private final String path;
+  private final int repDegree;
+  private final List<ChunkInfo> chunks;
 
-  public FileInfo(String path, int rep_degree) {
+  /**
+   * Return id.
+   */
+  public FileInfo(final String path, final int repDegree) {
     this.path = path;
-    this.rep_degree = rep_degree;
+    this.repDegree = repDegree;
     try {
       this.id = this.hasher(path);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
 
     this.chunks = Collections.synchronizedList(new ArrayList<ChunkInfo>());
   }
 
-  private String hasher(String file_path) throws IOException, NoSuchAlgorithmException {
-    Path path = Paths.get(file_path);
-    ByteArrayOutputStream dataWMetaData = new ByteArrayOutputStream();
-    StringBuilder hexString = new StringBuilder();
+  private String hasher(final String filePath) throws IOException, NoSuchAlgorithmException {
+    final Path path = Paths.get(filePath);
+    final ByteArrayOutputStream dataWMetaData = new ByteArrayOutputStream();
+    final StringBuilder hexString = new StringBuilder();
 
-    BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-    FileInputStream fis = new FileInputStream(file_path);
-    byte[] data = new byte[200000000];
+    final BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+    final FileInputStream fis = new FileInputStream(filePath);
+    final byte[] data = new byte[200000000];
     fis.read(data);
     fis.close();
 
-    dataWMetaData.write(file_path.getBytes());
+    dataWMetaData.write(filePath.getBytes());
     dataWMetaData.write(attr.lastModifiedTime().toString().getBytes());
     dataWMetaData.write(data);
 
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    byte[] encodedHash = digest.digest(dataWMetaData.toByteArray());
-    for (byte b : encodedHash) {
-      String hex = Integer.toHexString(0xff & b);
-      if (hex.length() == 1)
+    final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    final byte[] encodedHash = digest.digest(dataWMetaData.toByteArray());
+    for (final byte b : encodedHash) {
+      final String hex = Integer.toHexString(0xff & b);
+      if (hex.length() == 1) {
         hexString.append('0');
+      }
       hexString.append(hex);
     }
 
     return hexString.toString();
   }
 
-  public void addChunk(ChunkInfo chunk) {
+  public void addChunk(final ChunkInfo chunk) {
     this.chunks.add(chunk);
   }
 
   /**
-   * @return the id
+   * Return id.
    */
   public String getId() {
     return id;
   }
 
   /**
-   * @return the chunks
+   * Return chunks.
    */
   public List<ChunkInfo> getChunks() {
     return chunks;
   }
 
   /**
-   * @return the rep_degree
+   * Return replication degree.
    */
-  public int getRep_degree() {
-    return rep_degree;
+  public int getRepDegree() {
+    return repDegree;
   }
 
   /**
-   * @return the path
+   * Return path.
    */
   public String getPath() {
     return path;
   }
 
-  public ChunkInfo getChunkByNo(int no) {
-    Optional<ChunkInfo> result = chunks.stream().filter(chunk -> chunk.getNo() == no).findFirst();
+  /**
+   * Return chunk.
+   */
+  public ChunkInfo getChunkByNo(final int no) {
+    final Optional<ChunkInfo> result = chunks.stream()
+        .filter(chunk -> chunk.getNo() == no).findFirst();
     return result.orElse(null);
   }
 
   @Override
   public String toString() {
-    StringBuilder aux = new StringBuilder("Path: " + path + "\n-\n  FileID: " + id + "\n  Desired Replication Degree: "
-        + rep_degree + "\n  Chunks: " + chunks.size());
-    for (ChunkInfo chunkInfo : chunks) {
+    final StringBuilder aux = new StringBuilder("Path: " + path + "\n-\n  FileID: " + id
+        + "\n  Desired Replication Degree: " + repDegree + "\n  Chunks: " + chunks.size());
+    for (final ChunkInfo chunkInfo : chunks) {
 
       aux.append("\n-\n").append(chunkInfo.toString());
 
