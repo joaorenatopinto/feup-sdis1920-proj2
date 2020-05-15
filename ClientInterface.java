@@ -3,23 +3,27 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class ClientInterface {
+    /**
+     * Main.
+     *
+     * @param args interface arguments
+     */
     public static void main(String[] args) {
-        
-        if (args.length == 3 && (args[1].equalsIgnoreCase("DELETE") || args[1].equalsIgnoreCase("RESTORE") || args[1].equalsIgnoreCase("RECLAIM"))){
-            
-        } else if (args.length == 4 && args[1].equalsIgnoreCase("BACKUP")){
-
-        } else if (args.length == 2 && args[1].equalsIgnoreCase("STATE")){
-
+        if (args.length == 3
+                && (args[1].equalsIgnoreCase("DELETE") || args[1].equalsIgnoreCase("RESTORE")
+                        || args[1].equalsIgnoreCase("RECLAIM"))
+                || args.length == 4 && args[1].equalsIgnoreCase("BACKUP")
+                || args.length == 2 && args[1].equalsIgnoreCase("STATE")) {
+            return;
         }
-        else {
-            System.err.println("Usage: java ClientInterface <PeerID>  <Protocol> :");
-            System.err.println("   Backup protocol: ClientInterface <PeerID> Backup <File_Path> <Replication_Degree>");
-            System.err.println("   Restore protocol: ClientInterface <PeerID> Restore <File_Path>");
-            System.err.println("   Delete protocol: ClientInterface <PeerID> Delete <File_Path>");
-            System.err.println("   Reclaim protocol: ClientInterface <PeerID> Reclaim <New_Max_Storage>");
-            System.exit(-1);
-        }
+
+        System.err.println("Usage: java ClientInterface <PeerID>  <Protocol> :");
+        System.err.println("   Backup protocol:  Backup <File_Path> <Replication_Degree>");
+        System.err.println("   Restore protocol: Restore <File_Path>");
+        System.err.println("   Delete protocol:  Delete <File_Path>");
+        System.err.println("   Reclaim protocol: Reclaim <New_Max_Storage>");
+        System.exit(-1);
+
         try {
             // Getting the registry
             Registry registry = LocateRegistry.getRegistry(null);
@@ -49,8 +53,10 @@ public class ClientInterface {
                     break;
                 case "SHUTDOWN":
                     interfaceStub.shutdown();
+                    break;
                 case "FINDSUCCESSOR":
                     interfaceStub.findSuccessorTest(new BigInteger(args[2]));
+                    break;
                 default:
                     break;
             }
