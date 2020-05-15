@@ -78,11 +78,8 @@ public class Peer extends PeerMethods {
 
     try {
       PeerMethods peer = new PeerMethods();
-
       PeerInterface interfaceStub = (PeerInterface) UnicastRemoteObject.exportObject(peer, 0);
-
       Registry registry = LocateRegistry.getRegistry();
-
       registry.bind("Peer" + args[0], interfaceStub);
     } catch (Exception e) {
       e.getStackTrace();

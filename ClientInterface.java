@@ -9,25 +9,23 @@ public class ClientInterface {
    * @param args interface arguments
    */
   public static void main(String[] args) {
-    if (args.length == 3
-        && (args[1].equalsIgnoreCase("DELETE") || args[1].equalsIgnoreCase("RESTORE")
-            || args[1].equalsIgnoreCase("RECLAIM"))
+    if (args.length == 3 && (args[1].equalsIgnoreCase("DELETE") || args[1].equalsIgnoreCase("RESTORE") || args[1].equalsIgnoreCase("RECLAIM"))
         || args.length == 4 && args[1].equalsIgnoreCase("BACKUP")
         || args.length == 2 && args[1].equalsIgnoreCase("STATE")) {
+      System.out.println("Aizz.");
+    } else {
+      System.err.println("Usage: java ClientInterface <PeerID>  <Protocol> :");
+      System.err.println("   Backup protocol:  Backup <File_Path> <Replication_Degree>");
+      System.err.println("   Restore protocol: Restore <File_Path>");
+      System.err.println("   Delete protocol:  Delete <File_Path>");
+      System.err.println("   Reclaim protocol: Reclaim <New_Max_Storage>");
       return;
     }
 
-    System.err.println("Usage: java ClientInterface <PeerID>  <Protocol> :");
-    System.err.println("   Backup protocol:  Backup <File_Path> <Replication_Degree>");
-    System.err.println("   Restore protocol: Restore <File_Path>");
-    System.err.println("   Delete protocol:  Delete <File_Path>");
-    System.err.println("   Reclaim protocol: Reclaim <New_Max_Storage>");
-    System.exit(-1);
 
     try {
       // Getting the registry
       Registry registry = LocateRegistry.getRegistry(null);
-
       PeerInterface interfaceStub = (PeerInterface) registry.lookup("Peer" + args[0]);
       switch (args[1].toUpperCase()) {
         case "BACKUP":

@@ -21,8 +21,7 @@ public class PeerThread implements Runnable {
       serverSocket = (SSLServerSocket) ssf.createServerSocket(Peer.portNumber);
 
     } catch (IOException e) {
-      System.out.println("Server - Failed to create SSLServerSocket");
-      e.getMessage();
+      System.out.println("Server - Failed to create SSLServerSocket\n" + e.getMessage());
       return;
     }
     try {

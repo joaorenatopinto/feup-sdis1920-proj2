@@ -5,17 +5,17 @@ import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
 
 public interface PeerInterface extends Remote {
-  void backup(String path, int repDegree) throws RemoteException;
+  public void backup(String path, int repDegree) throws RemoteException;
 
-  void shutdown() throws RemoteException;
+  public void shutdown() throws RemoteException;
 
-  void findSuccessorTest(BigInteger id) throws RemoteException, NoSuchAlgorithmException;
+  public void findSuccessorTest(BigInteger id) throws RemoteException, NoSuchAlgorithmException;
 
-  void restore(String path) throws RemoteException;
+  public void restore(String path) throws RemoteException;
 
-  void delete(String path) throws RemoteException;
+  public void delete(String path) throws RemoteException;
 
-  void spaceReclaim(long newMaxStorage) throws RemoteException, IOException;
+  public void spaceReclaim(long newMaxStorage) throws RemoteException, IOException;
 
-  void printState() throws RemoteException;
+  public void printState() throws RemoteException;
 }

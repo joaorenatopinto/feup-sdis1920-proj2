@@ -29,3 +29,5 @@ hs_err_pid*
 #Other stuff
 *da.txt
 Peers/
+
+.vscode/
