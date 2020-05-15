@@ -81,7 +81,6 @@ public class MessageProcessor implements Runnable{
             switch (msgParts[1]) {
                 case "PUTCHUNK":
                     // Save file
-                    // TODO: RETURN SUCESS OR NOT AND ANSWER WITH SUCESS OR ERROR MESSAGE
                     if(Peer.saveChunk(msg))
                         return "SUCCESS".getBytes();
                     return "ERROR".getBytes();
@@ -90,9 +89,8 @@ public class MessageProcessor implements Runnable{
                     file_id = msgParts[2];
                     chunk_no = Integer.parseInt(msgParts[3]);
                     byte[] chunk;
-
-                    // Send Chunk
                     try {
+                        // Send Chunk
                         chunk = Peer.retrieveChunk(file_id, chunk_no);
                     } catch (IOException e) {
                         // If it catches an IOException it means it couldn't retrieve the chunk so it informs the node

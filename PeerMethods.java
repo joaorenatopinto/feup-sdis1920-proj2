@@ -229,8 +229,7 @@ public class PeerMethods implements PeerInterface {
             body.write(b, 0, chunk_size);
             byte[] chunk_body = body.toByteArray();
             new_file.addChunk(new ChunkInfo(chunkno, new_file.getId(), rep_degree, chunk_body.length));
-            //Peer.storage.saveFile(chunk_body);
-            backupChunk(new_file.getId(), chunkno, rep_degree, chunk_body);
+            backupChunk(new_file.getId(), chunkno, rep_degree, chunk_body, new_file);
             chunkno++;
         }
         is.close();
@@ -263,7 +262,7 @@ public class PeerMethods implements PeerInterface {
     }
 
 
-    public void backupChunk(String file_id, int chunk_no, int rep_degree, byte[] body) throws NoSuchAlgorithmException, IOException {
+    public void backupChunk(String file_id, int chunk_no, int rep_degree, byte[] body, FileInfo file) throws NoSuchAlgorithmException, IOException {
         for(int i = 0; i < rep_degree; i++) {
             BigInteger chunkChordId = getHash(file_id, chunk_no, i);
             System.out.println(">>> Chunk Hash: " + chunkChordId + " <<<");
@@ -274,12 +273,6 @@ public class PeerMethods implements PeerInterface {
             try {
                 SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                 Socket = (SSLSocket) factory.createSocket(receiverNode.ip, receiverNode.port);
-                //Socket.setSendBufferSize(64000);
-                //System.out.println("MANDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-                //System.out.println(Socket.getSendBufferSize());
-                
-                
-                Socket.setReceiveBufferSize(64000);
                 Socket.startHandshake();
 
                 DataOutputStream out = new DataOutputStream(Socket.getOutputStream());
@@ -288,15 +281,18 @@ public class PeerMethods implements PeerInterface {
                 String fromServer;
                 out.write(msg);
 
-                // TODO: CHECK IF IT ANSWERS SUCCESS OR ERROR AND HANDLE IT
-
-                if ((fromServer = in.readLine()) != null) {
-                    System.out.println("Server: " + fromServer);
-                    // String[] answer = fromServer.split(" ");
-                } else {
+                if ((fromServer = in.readLine()) != null){
+                   if(fromServer.equals("SUCCESS")) {
+                       // If Node receives a sucess as answer we increment the chunk current Replication Degree on the System.
+                        file.getChunkByNo(chunk_no).IncrementCurr_rep_degree();
+                   } 
+                   if (fromServer.equals("ERROR")) {
+                       // TODO: IF ERROR AND HANDLE IT NEEDS A RETRY WITH SOME OTHER ALGORITHM
+                        System.out.print("ERROR: Peer couldn't store chunk.");
+                    }
+                }else {
                     System.out.println("ERROR: Backup answer was empty.");
                 }
-
             } catch (IOException e) {
                 System.out.println("Exception thrown: " + e.getMessage());
             }
