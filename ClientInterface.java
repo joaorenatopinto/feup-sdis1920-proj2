@@ -13,7 +13,10 @@ public class ClientInterface {
             
         } else if (args.length == 4 && args[1].equalsIgnoreCase("BACKUP")){
 
-        } else {
+        } else if (args.length == 2 && args[1].equalsIgnoreCase("STATE")){
+
+        }
+        else {
             System.err.println("Usage: java ClientInterface <PeerID>  <Protocol> :");
             System.err.println("   Backup protocol: ClientInterface <PeerID> Backup <File_Path> <Replication_Degree>");
             System.err.println("   Restore protocol: ClientInterface <PeerID> Restore <File_Path>");
@@ -44,7 +47,9 @@ public class ClientInterface {
                         System.err.println("<New_Max_Storage> must be a Number");
                         System.exit(-1);
                     }
-                   
+                    break;
+                case "STATE":
+                    interfaceStub.print_state();
                     break;
                 case "SHUTDOWN":
                     interfaceStub.shutdown();

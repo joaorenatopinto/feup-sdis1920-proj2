@@ -392,6 +392,22 @@ public class PeerMethods implements PeerInterface {
         return true;
     }
 
+    public void print_state() {
+        System.out.println("Files Backed Up:");
+        for (FileInfo file : Peer.storage.getFiles_backed()) {
+            System.out.println(file.toString());
+        }
+        System.out.println("\nChunks Stored:\n-");
+        for (ChunkInfo chunkInfo : Peer.storage.getChunks_Stored()) {
+            System.out.println(chunkInfo.toString());
+            System.out.println('-');
+        }
+        if(Peer.storage.getMax_storage() == 0)
+            System.out.println("Storage Capacity: Unlimited");
+        else System.out.println("Storage Capacity: " + (Peer.storage.getMax_storage()/1000) + " KBytes");
+        System.out.println("Storage Used: " + (Peer.storage.getCurr_storage()/1000) + " KBytes");
+        return;
+    }
 
 
     private BigInteger getHash(String file_id, int chunk_no, int copyNo) throws NoSuchAlgorithmException {
