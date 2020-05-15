@@ -167,7 +167,7 @@ public class Node {
    * Check predecessor.
    */
   public void checkPredecessor() {
-    if (predecessor.hasFailed()) {
+    if (this.predecessor!=null && predecessor.hasFailed()) {
       this.predecessor = null;
     }
   }
