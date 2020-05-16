@@ -82,6 +82,7 @@ public class MessageProcessor implements Runnable {
     } else if (msgParts[0].equals("PROTOCOL")) {
       String fileID;
       int chunkNo;
+      int copyNo;
       switch (msgParts[1]) {
         case "PUTCHUNK":
           // Save file
@@ -93,10 +94,11 @@ public class MessageProcessor implements Runnable {
           // Get the information of the needed chunk
           fileID = msgParts[2];
           chunkNo = Integer.parseInt(msgParts[3]);
+          copyNo = Integer.parseInt(msgParts[4]);
           byte[] chunk;
           try {
             // Send Chunk
-            chunk = Peer.retrieveChunk(fileID, chunkNo);
+            chunk = Peer.retrieveChunk(fileID, chunkNo, copyNo);
           } catch (IOException e) {
             // If it catches an IOException it means it couldn't retrieve the chunk so it
             // informs the node

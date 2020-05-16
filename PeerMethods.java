@@ -136,7 +136,7 @@ public class PeerMethods implements PeerInterface {
     /* For each owner of a copy of the chunk */
     for (int i = 0; i < repDegree; i++) {
       NodeReference receiverNode = getNode(fileId, chunkNo, i);
-      byte[] msg = MessageBuilder.getGetchunkMessage(fileId, chunkNo);
+      byte[] msg = MessageBuilder.getGetchunkMessage(fileId, chunkNo, i);
 
       try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {
         /* Send GETCHUNK message */
@@ -161,7 +161,7 @@ public class PeerMethods implements PeerInterface {
               } else {
                 System.out.println("Warning: wrong chunk while restoring chunk");
                 System.out.println("   : received " + tokens[2] + "_"
-                      + tokens[3] + " | wanted" + fileId + "_" + chunkNo);
+                      + tokens[3] + "_" + tokens[4] + " | wanted" + fileId + "_" + chunkNo + "_" + i);
               }
             } else {
               System.out.println("Warning: wrong message while restoring chunk");
@@ -297,7 +297,7 @@ public class PeerMethods implements PeerInterface {
     for (int i = 0; i < repDegree; i++) {
       NodeReference receiverNode = getNode(fileId, chunkNo, i);
 
-      byte[] msg = MessageBuilder.getPutchunkMessage(fileId, chunkNo, body);
+      byte[] msg = MessageBuilder.getPutchunkMessage(fileId, chunkNo, body, i);
       try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {
         /* Send PUTCHUNK message */
         socket.write(msg);
@@ -340,15 +340,15 @@ public class PeerMethods implements PeerInterface {
   /**
    * Get chunk from peer.
    */
-  public static byte[] retrieveChunk(String fileId, int chunkNo) throws IOException {
+  public static byte[] retrieveChunk(String fileId, int chunkNo, int copyNo) throws IOException {
     byte[] chunk = null;
-    String key = fileId + "_" + chunkNo;
+    String key = fileId + "_" + chunkNo + "_" + copyNo;
 
     Path file = Paths.get("Peers/dir" + Peer.id + "/" + key);
     byte[] fileData = Files.readAllBytes(file);
     ByteArrayOutputStream body = new ByteArrayOutputStream();
     body.write(fileData);
-    chunk = MessageBuilder.getChunkMessage(fileId, chunkNo, body.toByteArray());
+    chunk = MessageBuilder.getChunkMessage(fileId, chunkNo, copyNo, body.toByteArray());
 
     return chunk;
   }
