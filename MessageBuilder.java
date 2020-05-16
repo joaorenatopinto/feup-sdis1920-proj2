@@ -58,7 +58,7 @@ public class MessageBuilder {
    * Return byte[] of GETCHUNK message.
    */
   public static byte[] getGetchunkMessage(String fileId, int chunkNo, int copyNo) throws IOException {
-    String msg = getMessage("GETCHUNK", fileId, chunkNo);
+    String msg = getMessage("GETCHUNK", fileId, chunkNo, copyNo);
     // msg += "\r\n"; // CRLF
     // msg += "\r\n"; // CRLF
     ByteArrayOutputStream message = new ByteArrayOutputStream();
