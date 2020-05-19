@@ -4,8 +4,6 @@ import java.math.BigInteger;
 import java.net.ConnectException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 
 public class NodeReference {
   public BigInteger id;
@@ -31,12 +29,15 @@ public class NodeReference {
   public NodeReference findSuccessor(BigInteger id) throws NoSuchAlgorithmException {
     String ipAddress;
     int portNumber;
-    try (SSLSocketStream socket = new SSLSocketStream(ip, port)) {
+    try {
+      SSLClientInterface client = new SSLClientInterface("client","123456",ip,port);
+      client.handshake();
+
       byte[] fromClient = new byte[65000];
       int msgSize;
 
-      socket.write(("CHORD FINDSUCCESSOR " + id).getBytes());
-      if ((msgSize = socket.read(fromClient)) != -1) {
+      client.write(("CHORD FINDSUCCESSOR " + id).getBytes());
+      if ((msgSize = client.read(fromClient)) != -1) {
         ByteArrayOutputStream message = new ByteArrayOutputStream();
         message.write(fromClient, 0, msgSize);
         String msg = message.toString();
@@ -49,7 +50,7 @@ public class NodeReference {
       } else {
         System.out.println("ERROR: Chord findSuccessor answer was empty.");
       }
-    } catch (IOException e) {
+    } catch ( SSLManagerException e) {
       e.printStackTrace();
     }
     return null;
@@ -59,9 +60,12 @@ public class NodeReference {
    * Notify.
    */
   public void notify(NodeReference n) {
-    try (SSLSocketStream socket = new SSLSocketStream(ip, port)) {
-      socket.write(("CHORD NOTIFY " + n.ip + " " + n.port).getBytes());
-    } catch (IOException e) {
+    try {
+      SSLClientInterface client = new SSLClientInterface("client","123456",ip,port);
+      client.handshake();
+
+      client.write(("CHORD NOTIFY " + n.ip + " " + n.port).getBytes());
+    } catch (SSLManagerException e) {
       e.printStackTrace();
     }
   }
@@ -73,13 +77,16 @@ public class NodeReference {
     String ipAddress;
     String portNumber;
 
-    try (SSLSocketStream socket = new SSLSocketStream(ip, port)) {
+    try {
+      SSLClientInterface client = new SSLClientInterface("client","123456",ip,port);
+      client.handshake();
+
       byte[] fromClient = new byte[65000];
       int msgSize;
 
-      socket.write(("CHORD GETPREDECESSOR").getBytes());
+      client.write(("CHORD GETPREDECESSOR").getBytes());
       // System.out.println("YOU: " + "CHORD FINDSUCCESSOR " + id);
-      if ((msgSize = socket.read(fromClient)) != -1) {
+      if ((msgSize = client.read(fromClient)) != -1) {
         ByteArrayOutputStream message = new ByteArrayOutputStream();
         message.write(fromClient, 0, msgSize);
         String msg = message.toString();
@@ -96,7 +103,7 @@ public class NodeReference {
       } else {
         System.out.println("ERROR: Chord getPredecessor answer was empty.");
       }
-    } catch (IOException e) {
+    } catch (SSLManagerException e) {
       e.printStackTrace();
     }
     return null;
@@ -106,8 +113,9 @@ public class NodeReference {
    * Failed? .
    */
   public boolean hasFailed() {
-    try (SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(ip, port)) {
-      socket.startHandshake();
+    try {
+      SSLClientInterface client = new SSLClientInterface("client","123456",ip,port);
+      client.handshake();
       return false;
     } catch (ConnectException e) {
       return true;

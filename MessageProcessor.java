@@ -1,55 +1,40 @@
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 
-import javax.net.ssl.SSLSocket;
-
 public class MessageProcessor implements Runnable {
 
-  SSLSocket clientSocket;
+  SSLServerInterface serverInterface;
 
-  public MessageProcessor(SSLSocket socket) {
-    this.clientSocket = socket;
+  public MessageProcessor(SSLServerInterface serverInterface) {
+    this.serverInterface = serverInterface;
   }
 
   @Override
   public void run() {
-    InputStream in = null;
-    // PrintWriter out = null;
-    OutputStream dataOut = null;
-
-    try {
-
-      dataOut = new DataOutputStream(clientSocket.getOutputStream());
-      // out = new PrintWriter(clientSocket.getOutputStream(), true);
-      in = new DataInputStream(clientSocket.getInputStream());
-    } catch (IOException e) {
-      return;
-    }
     byte[] fromClient = new byte[65000];
     int msgSize;
     try {
-      if ((msgSize = in.read(fromClient)) != -1) {
+      //Start by preforming the handshake
+      this.serverInterface.handshake();
+
+      if ((msgSize = serverInterface.read(fromClient)) != -1) {
         ByteArrayOutputStream message = new ByteArrayOutputStream();
         message.write(fromClient, 0, msgSize);
 
         // System.out.println(msgSize);
         if (new String(fromClient).equals("Bye.")) {
-          dataOut.write("Bye.".getBytes());
-          clientSocket.close();
+          serverInterface.write("Bye.".getBytes());
+          // TODO close the interface clientSocket.close();
         } else {
           byte[] meh = processMessage(message.toByteArray());
           if (meh != null) {
             // String answer = new String(meh);
             // System.out.println("YOU: " + answer);
-            dataOut.write(meh);
+            serverInterface.write(meh);
           }
-          clientSocket.close();
+          // TODO close the interface clientSocket.close();
         }
       }
     } catch (Exception e) {

@@ -287,15 +287,16 @@ public abstract class SSLManager {
         }
     }
 
-    public byte[] read() throws SSLManagerException {
+    public int read(byte[] message) throws SSLManagerException {
         if (handshakeComplete) {
             this.unwrap();
             this.inAppData.flip();
 
-            byte[] ret = new byte[this.inAppData.remaining()];
-            this.inAppData.get(ret);
+            int packLen = this.inAppData.remaining();
 
-            return ret;
+            this.inAppData.get(message);
+
+            return packLen;
         }
         else {
             throw new SSLManagerException("Handshake must be preformed before reading");
