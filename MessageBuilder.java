@@ -1,3 +1,4 @@
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -20,22 +21,6 @@ public class MessageBuilder {
     return message.toByteArray();
   }
 
-  /**
-   * Return byte[] of CHUNK message.
-   */
-  public static byte[] getChunkMessage(String fileId, int chunkNo, byte[] body) throws IOException {
-    String msg = getMessage("CHUNK", fileId, chunkNo);
-    // msg += "\r\n"; // CRLF
-    // msg += "\r\n"; // CRLF
-    ByteArrayOutputStream message = new ByteArrayOutputStream();
-    message.write(msg.getBytes());
-    message.write(0xD);
-    message.write(0xA);
-    message.write(0xD);
-    message.write(0xA);
-    message.write(body);
-    return message.toByteArray();
-  }
 
     /**
    * Return byte[] of CHUNK message.
@@ -78,6 +63,23 @@ public class MessageBuilder {
     return message.toByteArray();
   }
 
+  public static byte[] getDelegateMessage(String fileId, int chunkNo, int copyNo, byte[] body) throws IOException{
+    String msg = getChordMessage("DELEGATE", fileId, chunkNo, copyNo);
+    ByteArrayOutputStream message = new ByteArrayOutputStream();
+    message.write(msg.getBytes());
+    message.write(0xD);
+    message.write(0xA);
+    message.write(0xD);
+    message.write(0xA);
+    message.write(body);
+    return message.toByteArray();
+  }
+
+  private static String getChordMessage(String msgType, String fileId, int chunkNo, int copyNo) {
+    String string = "CHORD " + msgType + " " + fileId + " " + chunkNo + " " + copyNo;
+    return string;
+  }
+
   private static String getMessage(String msgType, String fileId, int chunkNo) {
     String string = "PROTOCOL " + msgType + " " + fileId + " " + chunkNo;
     return string;
@@ -87,4 +89,5 @@ public class MessageBuilder {
     String string = "PROTOCOL " + msgType + " " + fileId + " " + chunkNo + " " + copyN;
     return string;
   }
+
 }

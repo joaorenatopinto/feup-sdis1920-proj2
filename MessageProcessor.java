@@ -1,3 +1,4 @@
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -76,6 +77,15 @@ public class MessageProcessor implements Runnable {
         case "GETPREDECESSOR":
           node = Peer.chordNode.predecessor;
           break;
+        case "DELEGATE":
+          // Save file
+          if (Peer.saveChunk(msg)) {
+            return "SUCCESS".getBytes();
+          }
+          if(Peer.delegateChunk(msg)){
+            return "SUCCESS".getBytes();
+          }
+          return "ERROR".getBytes();
         default:
           break;
       }
@@ -87,6 +97,9 @@ public class MessageProcessor implements Runnable {
         case "PUTCHUNK":
           // Save file
           if (Peer.saveChunk(msg)) {
+            return "SUCCESS".getBytes();
+          }
+          if(Peer.delegateChunk(msg)){
             return "SUCCESS".getBytes();
           }
           return "ERROR".getBytes();

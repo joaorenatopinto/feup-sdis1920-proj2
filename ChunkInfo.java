@@ -1,11 +1,11 @@
-package Storage;
-
 public class ChunkInfo {
   private int no;
   private String fileID;
   private int wantedRepDegree;
   private int currRepDegree = 0;
   private int size;
+  private boolean delegated;
+  private NodeReference receiver;
 
   /**
    * Chunk information.
@@ -15,6 +15,7 @@ public class ChunkInfo {
     this.fileID = fileID;
     this.size = size;
     this.wantedRepDegree = repDegree;
+    this.delegated = false;
   }
 
   /**
@@ -71,6 +72,22 @@ public class ChunkInfo {
    */
   public void decrementCurrRepDegree() {
     this.currRepDegree -= 1;
+  }
+
+  public void delegate(NodeReference receiver){
+    this.delegated = true;
+    this.receiver = receiver;
+  }
+
+  /**
+   * @return the receiver
+   */
+  public NodeReference getReceiver() {
+    return receiver;
+  }
+
+  public boolean getDelegated(){
+    return delegated;
   }
 
   @Override

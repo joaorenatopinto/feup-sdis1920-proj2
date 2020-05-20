@@ -1,4 +1,4 @@
-package Storage;
+
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -147,7 +147,6 @@ public class Storage {
 
     directory.mkdir();
     String chunkTxt = new String(chunk);
-    System.out.println("CHUNKTXT|!!!!!!: " + chunkTxt);
     String[] chunkpieces = chunkTxt.split("\\s+|\n");
     List<byte[]> parts = split(chunk);
     String fileName = chunkpieces[2] + "_" + chunkpieces[3] + "_" + chunkpieces[4];
