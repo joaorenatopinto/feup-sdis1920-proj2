@@ -49,7 +49,7 @@ public class MessageProcessor implements Runnable {
             // String answer = new String(meh);
             // System.out.println("YOU: " + answer);
             dataOut.write(meh);
-          } java ClientInterface 2 RESTORE test/lindo.jpeg
+          }
           clientSocket.close();
         }
       }
