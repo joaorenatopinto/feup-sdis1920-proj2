@@ -117,8 +117,7 @@ public class Storage {
    * Get stored chunk.
    */
   public ChunkInfo getStoredChunkInfo(String fileID, int chunkNo) {
-    Optional<ChunkInfo> result = chunksStored.stream()
-        .filter(ch -> ((ch.getFileID().equals(fileID)) && (ch.getNo() == chunkNo))).findFirst();
+    Optional<ChunkInfo> result = chunksStored.stream().filter(ch -> ((ch.getFileID().equals(fileID)) && (ch.getNo() == chunkNo))).findFirst();
     return result.orElse(null);
   }
 

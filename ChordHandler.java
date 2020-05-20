@@ -18,6 +18,6 @@ public class ChordHandler implements Runnable {
     } catch (NoSuchAlgorithmException e) {
       e.printStackTrace();
     }
-    System.out.println(chordNode);
+    //System.out.println(chordNode);
   }
 }

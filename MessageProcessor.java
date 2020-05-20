@@ -49,7 +49,7 @@ public class MessageProcessor implements Runnable {
             // String answer = new String(meh);
             // System.out.println("YOU: " + answer);
             dataOut.write(meh);
-          }
+          } java ClientInterface 2 RESTORE test/lindo.jpeg
           clientSocket.close();
         }
       }
@@ -90,6 +90,7 @@ public class MessageProcessor implements Runnable {
           break;
       }
     } else if (msgParts[0].equals("PROTOCOL")) {
+      System.out.println(msgParts[0]+ " " + msgParts[1] + " "+ msgParts[2] + " "+ msgParts[3] +" "+ msgParts[4]);
       String fileID;
       int chunkNo;
       int copyNo;
@@ -100,6 +101,7 @@ public class MessageProcessor implements Runnable {
             return "SUCCESS".getBytes();
           }
           if(Peer.delegateChunk(msg)){
+            System.out.println("!!!!! DELEGATE !!!!!");
             return "SUCCESS".getBytes();
           }
           return "ERROR".getBytes();
