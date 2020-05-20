@@ -425,13 +425,36 @@ public class PeerMethods implements PeerInterface {
 		ChunkInfo chunk = Peer.storage.getStoredChunkInfo(fileId, chunkNo);
 		if (chunk != null) {
 			//TODO CHECK IF DELEGATED AND SEND A DELETE TO RESPECTIVE NODE
-			Path file = Paths.get("Peers/dir" + Peer.id + "/" + key);
-			if (!file.toFile().delete()) {
-				return false;
+
+			if(chunk.getDelegated()){
+				NodeReference node = chunk.getReceiver();
+			try (SSLSocketStream socket = new SSLSocketStream(node.ip, node.port)) {
+				byte[] msg = MessageBuilder.getDeleteMessage(fileId, chunkNo);
+				socket.write(msg);
+
+				byte[] fromClient = new byte[65000];
+				int msgSize;
+				if ((msgSize = socket.read(fromClient)) != -1) {
+					ByteArrayOutputStream message = new ByteArrayOutputStream();
+					message.write(fromClient, 0, msgSize);
+					if (new String(fromClient).equals("ERROR")) {
+						return false;
+					} else if (new String(fromClient).equals("SUCCESS")) {
+						return true;
+					}
+				}
+			} catch (IOException e) {
+				System.out.println("Exception thrown: " + e.getMessage());
 			}
-			Peer.storage.removeStoredChunk(chunk);
-			return true;
-		}
+				} else {
+					Path file = Paths.get("Peers/dir" + Peer.id + "/" + key);
+					if (!file.toFile().delete()) {
+						return false;
+					}
+					Peer.storage.removeStoredChunk(chunk);
+					return true;
+				}
+			}
 		return false;
   }
 
