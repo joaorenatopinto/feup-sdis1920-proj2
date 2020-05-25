@@ -60,12 +60,8 @@ public class Peer extends PeerMethods {
           System.err.println("ERROR: Failed to start RMI on port : 1099");
           System.exit(-1);
         }
-        System.setProperty("javax.net.ssl.keyStore", "server.keys");
-        System.setProperty("javax.net.ssl.keyStorePassword", "123456");
         chordNode.create();
       } else if (chordOption.equalsIgnoreCase("JOIN")) {
-        System.setProperty("javax.net.ssl.keyStore", "client.keys");
-        System.setProperty("javax.net.ssl.keyStorePassword", "123456");
         chordNode.join(args[4], Integer.parseInt(args[5]));
       } else {
         System.out.println("ERROR: Failed to initiate Peer.");

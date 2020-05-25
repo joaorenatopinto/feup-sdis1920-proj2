@@ -1,11 +1,8 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.ConnectException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 
 public class NodeReference {
   public BigInteger id;
@@ -45,11 +42,12 @@ public class NodeReference {
         ipAddress = answer[2];
         portNumber = Integer.parseInt(answer[3]);
         NodeReference node = new NodeReference(ipAddress, portNumber);
+        socket.close();
         return node;
       } else {
         System.out.println("ERROR: Chord findSuccessor answer was empty.");
       }
-    } catch (IOException e) {
+    } catch (SSLManagerException | IOException e) {
       e.printStackTrace();
     }
     return null;
@@ -60,8 +58,9 @@ public class NodeReference {
    */
   public void notify(NodeReference n) {
     try (SSLSocketStream socket = new SSLSocketStream(ip, port)) {
+      socket.close();
       socket.write(("CHORD NOTIFY " + n.ip + " " + n.port).getBytes());
-    } catch (IOException e) {
+    } catch (IOException | SSLManagerException e) {
       e.printStackTrace();
     }
   }
@@ -92,11 +91,12 @@ public class NodeReference {
         portNumber = answer[3];
         NodeReference node = new NodeReference(ipAddress, portNumber);
 
+        socket.close();
         return node;
       } else {
         System.out.println("ERROR: Chord getPredecessor answer was empty.");
       }
-    } catch (IOException e) {
+    } catch (IOException | SSLManagerException e) {
       e.printStackTrace();
     }
     return null;
@@ -106,14 +106,14 @@ public class NodeReference {
    * Failed? .
    */
   public boolean hasFailed() {
-    try (SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(ip, port)) {
-      socket.startHandshake();
-      return false;
-    } catch (ConnectException e) {
-      return true;
-    } catch (IOException e) {
+    try {
+      SSLClientInterface socket = new SSLClientInterface("client","123456",ip,port);
+      boolean res = !socket.handshake();
+      socket.close();
+      return res;
+    } catch (SSLManagerException | IOException e) {
       e.printStackTrace();
-      return false;
+      return true;
     }
   }
 
