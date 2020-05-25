@@ -1,8 +1,10 @@
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.channels.ServerSocketChannel;
-
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class SSLEngineServer {
     private final String managerId;
@@ -10,7 +12,7 @@ public class SSLEngineServer {
     private final int port;
 
     private SSLContext context;
-    private ServerSocketChannel channel;
+    private AsynchronousServerSocketChannel channel;
 
     public SSLEngineServer(String managerId, String passphrase, int port) throws SSLManagerException {
         this.managerId = managerId;
@@ -22,8 +24,8 @@ public class SSLEngineServer {
             this.context = SSLManager.initSSLContext(this.managerId, this.passphrase);
 
             //Create the socket channel
-            this.channel = ServerSocketChannel.open();
-            this.channel.socket().bind(new InetSocketAddress(port));
+            this.channel = AsynchronousServerSocketChannel.open();
+            this.channel.bind(new InetSocketAddress(port));
         }
         catch (IOException e) {
             throw new SSLManagerException(e.getMessage());
@@ -32,9 +34,11 @@ public class SSLEngineServer {
 
     public SSLServerInterface accept() throws SSLManagerException {
         try {
-            return new SSLServerInterface(channel.accept(), this.context);
+            Future<AsynchronousSocketChannel> worker = channel.accept();
+            AsynchronousSocketChannel newChannel = worker.get();
+            return new SSLServerInterface(newChannel, this.context);
         }
-        catch (SSLManagerException | IOException e) {
+        catch (SSLManagerException | InterruptedException | ExecutionException e) {
             throw new SSLManagerException(e.getMessage());
         }
     }

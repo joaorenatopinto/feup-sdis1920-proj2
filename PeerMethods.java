@@ -170,7 +170,7 @@ public class PeerMethods implements PeerInterface {
             }
           }
         }
-      } catch (IOException e) {
+      } catch (SSLManagerException e) {
         System.out.println("Exception thrown: " + e.getMessage());
       }
     }
@@ -204,7 +204,7 @@ public class PeerMethods implements PeerInterface {
             continue;
           }
         }
-      } catch (IOException e) {
+      } catch (SSLManagerException e) {
         System.out.println("Exception thrown: " + e.getMessage());
       }
     }
@@ -316,7 +316,7 @@ public class PeerMethods implements PeerInterface {
         } else {
           System.out.println("ERROR: Backup answer was empty.");
         }
-      } catch (IOException e) {
+      } catch (SSLManagerException e) {
         System.out.println("Exception thrown: " + e.getMessage());
       }
     }

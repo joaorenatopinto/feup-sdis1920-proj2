@@ -113,8 +113,6 @@ public class NodeReference {
    * Failed? .
    */
   public boolean hasFailed() {
-    /*
-    TODO uncomment -> just for test
     try {
       SSLClientInterface client = new SSLClientInterface("client","123456",ip,port);
       client.handshake();
@@ -123,10 +121,6 @@ public class NodeReference {
       e.printStackTrace();
       return true;
     }
-
-     */
-
-    return false;
   }
 
   private BigInteger getHash(String ip, int port) throws NoSuchAlgorithmException {

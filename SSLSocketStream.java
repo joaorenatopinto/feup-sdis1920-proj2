@@ -1,5 +1,3 @@
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class SSLSocketStream implements java.lang.AutoCloseable {
@@ -21,14 +19,12 @@ public class SSLSocketStream implements java.lang.AutoCloseable {
     return client.read(buf);
   }
 
-  /* TODO uncomment this
-  public String readLine() throws IOException {
-    return bufferedIn.readLine();
+
+  public String readLine() throws SSLManagerException {
+      return client.readln();
   }
 
-   */
-
-  public void close() throws IOException {
-    socket.close();
+  public void close() throws IOException, SSLManagerException {
+    client.close();
   }
 }
