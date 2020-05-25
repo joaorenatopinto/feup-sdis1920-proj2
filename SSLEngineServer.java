@@ -1,12 +1,8 @@
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
-import java.security.*;
-import java.security.cert.CertificateException;
+
 
 public class SSLEngineServer {
     private final String managerId;
@@ -41,5 +37,9 @@ public class SSLEngineServer {
         catch (SSLManagerException | IOException e) {
             throw new SSLManagerException(e.getMessage());
         }
+    }
+
+    public void close() throws IOException {
+        this.channel.close();
     }
 }
