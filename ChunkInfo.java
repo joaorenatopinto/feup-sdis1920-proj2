@@ -4,6 +4,7 @@ public class ChunkInfo {
   private int wantedRepDegree;
   private int currRepDegree = 0;
   private int size;
+  private int copyNo;
   private boolean delegated;
   private NodeReference receiver;
 
@@ -17,6 +18,16 @@ public class ChunkInfo {
     this.wantedRepDegree = repDegree;
     this.delegated = false;
   }
+
+  public ChunkInfo(int no, String fileID, int repDegree, int size, int copyNo) {
+    this.no = no;
+    this.fileID = fileID;
+    this.size = size;
+    this.wantedRepDegree = repDegree;
+    this.delegated = false;
+    this.copyNo = copyNo;
+  }
+
 
   /**
    * Return current replication degree.
@@ -37,6 +48,10 @@ public class ChunkInfo {
    */
   public int getNo() {
     return no;
+  }
+
+  public int getCopyNo() {
+    return copyNo;
   }
 
   /**

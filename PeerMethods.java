@@ -494,6 +494,20 @@ public class PeerMethods implements PeerInterface {
     return true;
   }
 
+  public void giveChunks(NodeReference n) throws NoSuchAlgorithmException {
+	for (ChunkInfo chunk : Peer.storage.getChunksStored()) {
+		//getHash(fileId, chunkNo, );
+		
+		BigInteger chunkHash = getHash(chunk.getFileID(), chunk.getNo(), chunk.getCopyNo());
+
+		if(!Peer.chordNode.clockwiseInclusiveBetween(chunkHash, n.id, Peer.chordNode.id)) {
+			// backup protocal no NodeReference n
+			// remover de mim próprio
+		}
+
+	}
+  }
+
   /**
    * Print storage state.
    */
