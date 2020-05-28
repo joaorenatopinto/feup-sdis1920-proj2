@@ -90,7 +90,7 @@ public class MessageProcessor implements Runnable {
           break;
       }
     } else if (msgParts[0].equals("PROTOCOL")) {
-      System.out.println(msgParts[0]+ " " + msgParts[1] + " "+ msgParts[2] + " "+ msgParts[3] +" "+ msgParts[4]);
+     //System.out.println(msgParts[0]+ " " + msgParts[1] + " "+ msgParts[2] + " "+ msgParts[3] +" "+ msgParts[4]);
       String fileID;
       int chunkNo;
       int copyNo;
