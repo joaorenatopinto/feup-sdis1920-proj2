@@ -1,3 +1,4 @@
+
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -147,6 +148,7 @@ public class Node {
   public void notify(NodeReference n) {
     if (this.predecessor == null || clockwiseExclusiveBetween(n.id, this.predecessor.id, this.id)) {
       this.predecessor = n;
+      //Peer.giveChunks(n);
     }
   }
 

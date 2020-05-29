@@ -1,4 +1,4 @@
-package Storage;
+
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -14,6 +14,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * FileInfo class holds all the information about a file: its id,
+ *  generated with metadata and data hashing, its path, the desired number of
+ *  copies in the syste (repDegree), and a list (chunks) of ChunkInfo that holds information
+ *  about its chunks
+ */
 public class FileInfo {
   private String id;
   private final String path;
@@ -21,7 +27,8 @@ public class FileInfo {
   private final List<ChunkInfo> chunks;
 
   /**
-   * Return id.
+   * Constructor, given a path and a desired number of copies it creates a File ID
+   *  and the empty list of chunkInfo
    */
   public FileInfo(final String path, final int repDegree) {
     this.path = path;
@@ -35,6 +42,10 @@ public class FileInfo {
     this.chunks = Collections.synchronizedList(new ArrayList<ChunkInfo>());
   }
 
+  /**
+   * Method that created the File ID, it takes a path and uses its first 200MB, its path
+   * and its lastModifiedTime to create a hash using SHA-256, that is decoded to hex
+   */
   private String hasher(final String filePath) throws IOException, NoSuchAlgorithmException {
     final Path path = Paths.get(filePath);
     final ByteArrayOutputStream dataWMetaData = new ByteArrayOutputStream();
@@ -63,40 +74,43 @@ public class FileInfo {
     return hexString.toString();
   }
 
+  /**
+   * Adds a ChunkInfo to the list of chunks that makes up the file
+   */
   public void addChunk(final ChunkInfo chunk) {
     this.chunks.add(chunk);
   }
 
   /**
-   * Return id.
+   * Return the File id
    */
   public String getId() {
     return id;
   }
 
   /**
-   * Return chunks.
+   * Return the list of ChunkInfo
    */
   public List<ChunkInfo> getChunks() {
     return chunks;
   }
 
   /**
-   * Return replication degree.
+   * Return the desired number of copies of the file
    */
   public int getRepDegree() {
     return repDegree;
   }
 
   /**
-   * Return path.
+   * Return file path
    */
   public String getPath() {
     return path;
   }
 
   /**
-   * Return chunk.
+   * Return ChunkInfo searched in the list by its number
    */
   public ChunkInfo getChunkByNo(final int no) {
     final Optional<ChunkInfo> result = chunks.stream()
@@ -104,6 +118,10 @@ public class FileInfo {
     return result.orElse(null);
   }
 
+  /**
+   * Function that gives the FileInfo information in string format, used to show the state of the
+   * file in the system when requested
+   */
   @Override
   public String toString() {
     final StringBuilder aux = new StringBuilder("Path: " + path + "\n-\n  FileID: " + id

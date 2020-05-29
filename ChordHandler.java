@@ -1,5 +1,9 @@
 import java.security.NoSuchAlgorithmException;
 
+/**
+   * ChordHandler task runs all the necessary methods to make sure the ChordRing
+   * is updated and ready
+   */
 public class ChordHandler implements Runnable {
   public Node chordNode;
 
@@ -9,7 +13,6 @@ public class ChordHandler implements Runnable {
 
   @Override
   public void run() {
-    // System.out.println("Stabilize and Fix Fingers");
     try {
       chordNode.checkSuccessor();
       chordNode.checkPredecessor();
@@ -18,6 +21,6 @@ public class ChordHandler implements Runnable {
     } catch (NoSuchAlgorithmException e) {
       e.printStackTrace();
     }
-    System.out.println(chordNode);
+    //System.out.println(chordNode);
   }
 }
