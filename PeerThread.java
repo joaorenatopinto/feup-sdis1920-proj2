@@ -15,7 +15,6 @@ public class PeerThread implements Runnable {
       e.printStackTrace();
     }
     try {
-      // System.out.println("Waiting Connection...");
       while (true) {
         // waits for a connection to occur and creates a Message Processor task and
         // gives it to ThreadPool
