@@ -12,6 +12,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * Manages TLS communication using SSLEngine
+ * Deals with all the nuances of the class mentioned above, abstracting all its complex functionality
+ */
 public abstract class SSLManager {
     static boolean DEBUG = false;
     static String[] CIPHERS = {"TLS_RSA_WITH_AES_256_CBC_SHA","TLS_RSA_WITH_AES_128_CBC_SHA"};
@@ -28,6 +32,13 @@ public abstract class SSLManager {
     private ByteBuffer inAppData;   //The incoming data after being unwrapped by SSlEngine
     private ByteBuffer inNetData;   //The incoming data before being unwrapped by SSlEngine
 
+    /**
+     * Creates a new SSLContext with the provided id and passphrase, using KeyStores in this folder
+     * @param managerId The id of the KeyStore manager id.keys
+     * @param passphrase The passphrase of the keystore
+     * @return The initialized SSLContext
+     * @throws SSLManagerException When something goes wrong
+     */
     static SSLContext initSSLContext(String managerId, String passphrase) throws SSLManagerException {
         char[] pass = passphrase.toCharArray();
 
@@ -58,12 +69,27 @@ public abstract class SSLManager {
         }
     }
 
+    /**
+     * Empty constructor for the SSLManager class
+     * When used init() needs to be called afterword
+     */
     public SSLManager() {}
 
+    /**
+     * Constructor for the SSLManager class
+     * @param channel The channel where the connection should be made
+     * @param address The address of the host where the channel is connected
+     * @param context The SSLContext for the secure communication
+     * @param client True if the SSLManager should operate in client mode, false otherwise (server mode)
+     * @throws SSLManagerException When something goes wrong
+     */
     public SSLManager(AsynchronousSocketChannel channel,InetSocketAddress address, SSLContext context, boolean client) throws SSLManagerException {
         this.init(channel,address,context,client);
     }
 
+    /**
+     * Initializes all the buffers necessary for the communication
+     */
     private void initEngineBuffers() {
         //Create buffers for application
         this.outAppData = ByteBuffer.allocate(session.getApplicationBufferSize());
@@ -72,6 +98,11 @@ public abstract class SSLManager {
         this.inNetData = ByteBuffer.allocate(session.getPacketBufferSize());
     }
 
+    /**
+     * Sets all the necessary settings for SSLEngine and creates the SSLSession
+     * instance used in the communication
+     * @param client True if the SSLManager should operate in client mode, false otherwise (server mode)
+     */
     private void initEngine(boolean client) {
         this.engine.setUseClientMode(client);
 
@@ -88,6 +119,14 @@ public abstract class SSLManager {
         this.init = true;
     }
 
+    /**
+     * Initializes the SSLManager if it has been built with the empty constructor
+     * @param channel The channel where the connection should be made
+     * @param address The address of the host where the channel is connected
+     * @param context The SSLContext for the secure communication
+     * @param client True if the SSLManager should operate in client mode, false otherwise (server mode)
+     * @throws SSLManagerException When something goes wrong
+     */
     protected void init(AsynchronousSocketChannel channel,InetSocketAddress address, SSLContext context, boolean client) throws SSLManagerException {
         this.context = context;
         this.channel = channel;
@@ -104,6 +143,13 @@ public abstract class SSLManager {
         }
     }
 
+    /**
+     * Initializes the SSLManager if it has been built with the empty constructor
+     * @param channel The channel where the connection should be made
+     * @param context The SSLContext for the secure communication
+     * @param client True if the SSLManager should operate in client mode, false otherwise (server mode)
+     * @throws SSLManagerException When something goes wrong
+     */
     protected void init(AsynchronousSocketChannel channel, SSLContext context, boolean client) throws SSLManagerException {
         this.context = context;
         this.channel = channel;
@@ -119,18 +165,32 @@ public abstract class SSLManager {
         }
     }
 
+    /**
+     * Checks if the SSLManager was initialized
+     * @throws SSLManagerException The manager was not initialized
+     */
     private void checkInit() throws SSLManagerException {
         if (!init) {
             throw new SSLManagerException("The SSLManager was not initialized: call the init method");
         }
     }
 
+    /**
+     * Prints a message to the console if debug mode is on
+     * @param msg The message to print
+     */
     private void debugPrint(String msg) {
         if(DEBUG) {
             System.out.println(msg);
         }
     }
 
+    /**
+     * Unwraps a packet using the SSLEngine and deals with all the possible status
+     * @return The SSLEngineResult corresponding to the unwrap
+     * @throws SSLManagerException When something goes wrong
+     * @throws TimeoutException When the unwrap resulted in a read and that read timed out
+     */
     //Assumes all buffers start in write mode
     private SSLEngineResult unwrap() throws SSLManagerException, TimeoutException {
         try {
@@ -200,6 +260,12 @@ public abstract class SSLManager {
         }
     }
 
+    /**
+     * Wraps a message and sends it through the channel
+     * @return The SSLEngineResult corresponding to the unwrap
+     * @throws SSLManagerException When something goes wrong
+     * @throws TimeoutException When the unwrap resulted in a read and that read timed out
+     */
     private SSLEngineResult wrapAndSend() throws SSLManagerException, TimeoutException {
         try {
             //Empty the network buffer
@@ -264,6 +330,12 @@ public abstract class SSLManager {
         }
     }
 
+    /**
+     * Processes the current handshake status
+     * @return True if the function needs to be called again, false otherwise
+     * @throws SSLManagerException When something goes wrong
+     * @throws TimeoutException When the unwrap resulted in a read and that read timed out
+     */
     private boolean processHandshakeStatus() throws SSLManagerException, TimeoutException {
         switch (engine.getHandshakeStatus()) {
             case NEED_UNWRAP:
@@ -298,6 +370,10 @@ public abstract class SSLManager {
         }
     }
 
+    /**
+     * Preforms a handshake
+     * @return True if the handshake was successful and false otherwise
+     */
     public boolean handshake() {
         //Begin the handshake
         try {
@@ -319,6 +395,12 @@ public abstract class SSLManager {
         }
     }
 
+    /**
+     * Unwraps a message and copies it to the array passed as parameter
+     * @param message The array where the message will be placed
+     * @return The number of bytes of the message read
+     * @throws SSLManagerException When something goes wrong
+     */
     public int read(byte[] message) throws SSLManagerException {
         debugPrint("READ CALLED");
 
@@ -338,6 +420,11 @@ public abstract class SSLManager {
         return packLen;
     }
 
+    /**
+     * Unwraps a message using SSLEngine and returns it as a String
+     * @return The unwraped message
+     * @throws SSLManagerException When something goes wrong
+     */
     public String readln() throws SSLManagerException {
         debugPrint("READLN CALLED");
 
@@ -358,6 +445,13 @@ public abstract class SSLManager {
         return new String(preString, StandardCharsets.UTF_8);
     }
 
+
+    /**
+     * Wraps a message using SSLEngine and sends it through the channel
+     * @param msg The message to be sent
+     * @return The number of bytes written to the channel
+     * @throws SSLManagerException When something goes wrong
+     */
     public int write(byte[] msg) throws SSLManagerException {
         debugPrint("WRITE CALLED");
 

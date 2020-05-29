@@ -6,22 +6,25 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+/**
+ * Serves as a server interface to accept TLS connections from
+ */
 public class SSLEngineServer {
-    private final String managerId;
-    private final String passphrase;
-    private final int port;
+    private final SSLContext context;
+    private final AsynchronousServerSocketChannel channel;
 
-    private SSLContext context;
-    private AsynchronousServerSocketChannel channel;
-
+    /**
+     * Constructs a new SSLEngineServer instance
+     * @param managerId The id of the KeyStore manager id.keys
+     * @param passphrase The passphrase of the keystore
+     * @param port The port where the server should listen
+     * @throws SSLManagerException When something goes wrong
+     */
     public SSLEngineServer(String managerId, String passphrase, int port) throws SSLManagerException {
-        this.managerId = managerId;
-        this.passphrase = passphrase;
-        this.port = port;
 
         //Initialize the key and trust stores
         try {
-            this.context = SSLManager.initSSLContext(this.managerId, this.passphrase);
+            this.context = SSLManager.initSSLContext(managerId, passphrase);
 
             //Create the socket channel
             this.channel = AsynchronousServerSocketChannel.open();
@@ -32,6 +35,11 @@ public class SSLEngineServer {
         }
     }
 
+    /**
+     * Accepts new connections to the server, blocking until a new connection is received
+     * @return The interface that can be used in the communication
+     * @throws SSLManagerException When something goes wrong
+     */
     public SSLServerInterface accept() throws SSLManagerException {
         try {
             Future<AsynchronousSocketChannel> worker = channel.accept();
