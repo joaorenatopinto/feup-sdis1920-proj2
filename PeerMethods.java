@@ -336,6 +336,7 @@ public class PeerMethods implements PeerInterface {
 			String fromServer;
 			if ((fromServer = socket.readLine()) != null) {
 				if (fromServer.equals("SUCCESS")) {
+
 					return true;
 				}
 				if (fromServer.equals("ERROR")) {
@@ -625,6 +626,7 @@ public class PeerMethods implements PeerInterface {
    */
   static public void giveChunks(NodeReference n) throws NoSuchAlgorithmException { 
 	List<ChunkInfo> toRemove = new ArrayList<>();
+	List<File> toDelete = new ArrayList<>();
 	for (int i = 0;  i < Peer.storage.getChunksStored().size(); i++) {
 		ChunkInfo chunk = Peer.storage.getChunksStored().get(i);
 		BigInteger chunkHash = getHash(chunk.getFileID(), chunk.getNo(), chunk.getCopyNo());
@@ -637,16 +639,22 @@ public class PeerMethods implements PeerInterface {
 				byte[] fileData = Files.readAllBytes(chunkFile.toPath());
 				ByteArrayOutputStream body = new ByteArrayOutputStream();
 				body.write(fileData);
-				backupChunk(chunk.getFileID(), chunk.getNo(), chunk.getCopyNo(), body.toByteArray());
-				chunkFile.delete();
+				if(backupChunk(chunk.getFileID(), chunk.getNo(), chunk.getCopyNo(), body.toByteArray())){
+					toRemove.add(chunk);
+					toDelete.add(chunkFile);
+				}
+					
 			}
 			catch (IOException e) {
 				e.printStackTrace();
 			}
-			toRemove.add(chunk);
+			
 		}
 	  }
 	  Peer.storage.getChunksStored().removeAll(toRemove);
+	  for (File file : toDelete) {
+		  file.delete();
+	  }
 	  Peer.pool.schedule(() -> {Peer.givingChunks = false;}, 2, TimeUnit.SECONDS);
 	}
 
