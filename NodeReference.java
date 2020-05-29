@@ -112,7 +112,6 @@ public class NodeReference {
       socket.close();
       return res;
     } catch (SSLManagerException | IOException e) {
-      e.printStackTrace();
       return true;
     }
   }

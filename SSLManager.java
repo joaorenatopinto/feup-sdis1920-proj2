@@ -21,13 +21,11 @@ public abstract class SSLManager {
     private AsynchronousSocketChannel channel;
 
     private boolean init = false;
-    private boolean handshakeOngoing = false;
 
     private ByteBuffer outAppData;  //The outgoing data before being wrapped by SSLEngine
     private ByteBuffer outNetData;  //The outgoing data after being wrapped by SSLEngine, ready to be sent over the network
     private ByteBuffer inAppData;   //The incoming data after being unwrapped by SSlEngine
     private ByteBuffer inNetData;   //The incoming data before being unwrapped by SSlEngine
-    private ByteBuffer storeData;   //stores data to be read
 
     static SSLContext initSSLContext(String managerId, String passphrase) throws SSLManagerException {
         char[] pass = passphrase.toCharArray();
@@ -71,7 +69,6 @@ public abstract class SSLManager {
         this.outNetData = ByteBuffer.allocate(session.getPacketBufferSize());
         this.inAppData = ByteBuffer.allocate(session.getApplicationBufferSize());
         this.inNetData = ByteBuffer.allocate(session.getPacketBufferSize());
-        this.storeData = ByteBuffer.allocate(session.getApplicationBufferSize());
     }
 
     protected void init(AsynchronousSocketChannel channel,InetSocketAddress address, SSLContext context, boolean client) throws SSLManagerException {
@@ -83,6 +80,10 @@ public abstract class SSLManager {
             //Create the SSLEngine and set client mode
             this.engine = this.context.createSSLEngine(address.getHostName(),address.getPort());
             this.engine.setUseClientMode(client);
+
+            if (!client) {
+                this.engine.setNeedClientAuth(true);
+            }
 
             //Get the sslSession from the engine
             this.session = engine.getSession();
@@ -186,15 +187,6 @@ public abstract class SSLManager {
                     this.debugPrint("\tOK");
                     //The unwrap was successful
 
-
-                    /*
-                    //Process any handshake data
-                    if (!this.handshakeOngoing) {
-                        while (this.processHandshakeStatus());
-                    }
-
-                     */
-
                     return res;
 
                 default:
@@ -250,16 +242,6 @@ public abstract class SSLManager {
                 case OK:
                     this.debugPrint("OK");
 
-                    //Process any required handshake data
-                    /*
-                    if (!this.handshakeOngoing) {
-                        while (processHandshakeStatus()) {
-                            //Simply process the status
-                        }
-                    }
-
-                     */
-
                     //Turn outNetData to read mode
                     this.outNetData.flip();
 
@@ -283,7 +265,6 @@ public abstract class SSLManager {
     private boolean processHandshakeStatus() throws SSLManagerException, TimeoutException {
         switch (engine.getHandshakeStatus()) {
             case NEED_UNWRAP:
-                this.handshakeOngoing = true;
                 this.debugPrint("NEED UNWRAP");
                 SSLEngineResult unwrapRes = this.unwrap();
                 this.debugPrint("UNWRAPPED");
@@ -291,7 +272,6 @@ public abstract class SSLManager {
                 return true;
 
             case NEED_WRAP:
-                this.handshakeOngoing = true;
                 this.debugPrint("NEED WRAP");
                 SSLEngineResult wrapRes = this.wrapAndSend();
                 this.debugPrint("WRAPPED");
@@ -299,19 +279,16 @@ public abstract class SSLManager {
                 return true;
 
             case NEED_TASK:
-                this.handshakeOngoing = true;
                 //Run all the tasks
                 //TODO maybe make this concurrent with threads
                 Runnable task;
                 while ((task = engine.getDelegatedTask()) != null) {
-                    task.run();
-                    this.debugPrint("Executed task task");
+                    new Thread(task).start();
                 }
                 return true;
 
             case FINISHED:
             case NOT_HANDSHAKING:
-                this.handshakeOngoing = false;
                 return false;
 
             default:

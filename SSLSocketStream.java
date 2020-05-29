@@ -1,5 +1,3 @@
-import java.io.IOException;
-
 public class SSLSocketStream implements java.lang.AutoCloseable {
   SSLClientInterface socket;
 
