@@ -29,8 +29,8 @@ public class Storage {
     this.peerId = peerId;
     this.maxStorage = -1;
     this.currStorage = 0;
-    this.filesBacked = Collections.synchronizedList(new ArrayList<FileInfo>());
-    this.chunksStored = Collections.synchronizedList(new ArrayList<ChunkInfo>());
+    this.filesBacked = Collections.synchronizedList(new ArrayList<>());
+    this.chunksStored = Collections.synchronizedList(new ArrayList<>());
   }
 
   /**
