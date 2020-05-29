@@ -1,3 +1,4 @@
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -59,10 +60,20 @@ public class MessageProcessor implements Runnable {
         case "GETPREDECESSOR":
           node = Peer.chordNode.predecessor;
           break;
+        case "DELEGATE":
+          // Save file
+          if (Peer.saveChunk(msg)) {
+            return "SUCCESS".getBytes();
+          }
+          if(Peer.delegateChunk(msg)){
+            return "SUCCESS".getBytes();
+          }
+          return "ERROR".getBytes();
         default:
           break;
       }
     } else if (msgParts[0].equals("PROTOCOL")) {
+     //System.out.println(msgParts[0]+ " " + msgParts[1] + " "+ msgParts[2] + " "+ msgParts[3] +" "+ msgParts[4]);
       String fileID;
       int chunkNo;
       int copyNo;
@@ -70,6 +81,10 @@ public class MessageProcessor implements Runnable {
         case "PUTCHUNK":
           // Save file
           if (Peer.saveChunk(msg)) {
+            return "SUCCESS".getBytes();
+          }
+          if(Peer.delegateChunk(msg)){
+            System.out.println("!!!!! DELEGATE !!!!!");
             return "SUCCESS".getBytes();
           }
           return "ERROR".getBytes();

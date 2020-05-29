@@ -1,4 +1,4 @@
-package Storage;
+
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -117,8 +117,7 @@ public class Storage {
    * Get stored chunk.
    */
   public ChunkInfo getStoredChunkInfo(String fileID, int chunkNo) {
-    Optional<ChunkInfo> result = chunksStored.stream()
-        .filter(ch -> ((ch.getFileID().equals(fileID)) && (ch.getNo() == chunkNo))).findFirst();
+    Optional<ChunkInfo> result = chunksStored.stream().filter(ch -> ((ch.getFileID().equals(fileID)) && (ch.getNo() == chunkNo))).findFirst();
     return result.orElse(null);
   }
 
@@ -147,7 +146,6 @@ public class Storage {
 
     directory.mkdir();
     String chunkTxt = new String(chunk);
-    System.out.println("CHUNKTXT|!!!!!!: " + chunkTxt);
     String[] chunkpieces = chunkTxt.split("\\s+|\n");
     List<byte[]> parts = split(chunk);
     String fileName = chunkpieces[2] + "_" + chunkpieces[3] + "_" + chunkpieces[4];
@@ -158,8 +156,7 @@ public class Storage {
       file.createNewFile();
       OutputStream os = new FileOutputStream(file);
       os.write(parts.get(1));
-      this.addStoredChunk(new ChunkInfo(Integer.parseInt(chunkpieces[3]),
-          chunkpieces[2], 0, (int) file.length()));
+      this.addStoredChunk(new ChunkInfo(Integer.parseInt(chunkpieces[3]),chunkpieces[2], 0, (int) file.length(), Integer.parseInt(chunkpieces[4])));
       this.addToCurrStorage(file.length());
       os.close();
     } catch (IOException e) {
