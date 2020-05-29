@@ -27,7 +27,6 @@ hs_err_pid*
 *.iml
 
 #Other stuff
-*da.txt
 Peers/
 
 .vscode/
