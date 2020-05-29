@@ -5,6 +5,9 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * Peer Interface for RMI
+ */
 public interface PeerInterface extends Remote {
   public void backup(String path, int repDegree) throws RemoteException;
 
