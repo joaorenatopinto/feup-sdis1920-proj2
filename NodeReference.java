@@ -59,6 +59,7 @@ public class NodeReference {
       socket.close();
       socket.write(("CHORD NOTIFY " + n.ip + " " + n.port).getBytes());
     } catch (SSLManagerException e) {
+      
       e.printStackTrace();
     }
   }

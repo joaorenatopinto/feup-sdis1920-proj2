@@ -39,8 +39,6 @@ public class Node {
    * Create circle.
    */
   public void create() {
-    System.out.println("CREATOR ID: " + this.id);
-
     this.predecessor = null;
     this.successor = this.ownReference;
 
