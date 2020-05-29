@@ -17,7 +17,6 @@ public class NodeReference {
 
   NodeReference(String ip, String port) throws NoSuchAlgorithmException {
     this.ip = ip;
-    // System.out.println("PORT:" + port + ";");
     this.port = Integer.parseInt(port);
     this.id = getHash(this.ip, this.port);
   }
@@ -37,7 +36,6 @@ public class NodeReference {
         ByteArrayOutputStream message = new ByteArrayOutputStream();
         message.write(fromClient, 0, msgSize);
         String msg = message.toString();
-        // System.out.println("Server: " + msg);
         String[] answer = msg.split("\\s+|\n");
         ipAddress = answer[2];
         portNumber = Integer.parseInt(answer[3]);
@@ -61,6 +59,7 @@ public class NodeReference {
       socket.close();
       socket.write(("CHORD NOTIFY " + n.ip + " " + n.port).getBytes());
     } catch (SSLManagerException e) {
+      
       e.printStackTrace();
     }
   }
@@ -77,12 +76,10 @@ public class NodeReference {
       int msgSize;
 
       socket.write(("CHORD GETPREDECESSOR").getBytes());
-      // System.out.println("YOU: " + "CHORD FINDSUCCESSOR " + id);
       if ((msgSize = socket.read(fromClient)) != -1) {
         ByteArrayOutputStream message = new ByteArrayOutputStream();
         message.write(fromClient, 0, msgSize);
         String msg = message.toString();
-        // System.out.println("Server: " + msg);
         String[] answer = msg.split("\\s+|\n");
         if (answer[2].equals("NULL")) {
           return null;
