@@ -1,8 +1,3 @@
-import java.io.IOException;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
-
 public class PeerThread implements Runnable {
   public Peer peer;
 
@@ -12,28 +7,23 @@ public class PeerThread implements Runnable {
 
   @Override
   public void run() {
-    SSLServerSocket serverSocket = null;
-    SSLServerSocketFactory ssf = null;
-
-    ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+    SSLEngineServer server = null;
 
     try {
-      serverSocket = (SSLServerSocket) ssf.createServerSocket(Peer.portNumber);
-
-    } catch (IOException e) {
-      System.out.println("Server - Failed to create SSLServerSocket\n" + e.getMessage());
-      return;
+      server = new SSLEngineServer("server","123456",Peer.portNumber);
+    } catch (SSLManagerException e) {
+      e.printStackTrace();
     }
     try {
       // System.out.println("Waiting Connection...");
       while (true) {
         // waits for a connection to occur and creates a Message Processor task and
         // gives it to ThreadPool
-        SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
-        Runnable task = new MessageProcessor(clientSocket);
+        SSLServerInterface serverInterface = server.accept();
+        Runnable task = new MessageProcessor(serverInterface);
         Peer.pool.execute(task);
       }
-    } catch (IOException e) {
+    } catch (SSLManagerException e) {
       e.printStackTrace();
     }
   }
