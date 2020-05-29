@@ -668,7 +668,12 @@ public class PeerMethods implements PeerInterface {
     } else {
       System.out.println("Storage Capacity: " + (Peer.storage.getMaxStorage() / 1000) + " KBytes");
     }
-    System.out.println("Storage Used: " + (Peer.storage.getCurrStorage() / 1000) + " KBytes");
+	System.out.println("Storage Used: " + (Peer.storage.getCurrStorage() / 1000) + " KBytes");
+	System.out.println("Chord ID: " + Peer.chordNode.id);
+	if(Peer.chordNode.successor==null) System.out.println("Chord Successor: Null");
+	else System.out.println("Chord Successor: " + Peer.chordNode.successor.id);
+	if(Peer.chordNode.predecessor==null) System.out.println("Chord Predecessor: Null");
+	else System.out.println("Chord Predecessor: " + Peer.chordNode.predecessor.id);
     return;
   }
 
