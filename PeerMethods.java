@@ -13,6 +13,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utility class that has all the methods that the Peer needs
@@ -124,7 +127,7 @@ public class PeerMethods implements PeerInterface {
 	/**
 	 * Get reference to node with chunk chunkNo from file fileID.
 	 */
-	private NodeReference getNode(String fileId, int chunkNo, int i) throws NoSuchAlgorithmException {
+	static private NodeReference getNode(String fileId, int chunkNo, int i) throws NoSuchAlgorithmException {
 		BigInteger chunkChordId = getHash(fileId, chunkNo, i);
 		NodeReference receiverNode = Peer.chordNode.findSuccessor(chunkChordId);
 		System.out.println(">>> Chunk Hash: " + chunkChordId + " <<<");
@@ -219,13 +222,10 @@ public class PeerMethods implements PeerInterface {
 		return true;
 	}
 
-	public void findSuccessorTest(BigInteger id) throws NoSuchAlgorithmException {
-		NodeReference node = Peer.chordNode.findSuccessor(id);
-		System.out.println("Node: " + node.ip + " " + node.port + " " + node.id);
-	}
-
 	/**
-	 * Divide file into chunks.
+	 *  Receives file path and desired number of copies and if file is found and is not too big,
+	 *  creates FileInfo and puts it  in Storage, breaks file in chunks, and for each of these chunks
+	 *  creates a ChunkInfo that is added to the FileInfo
 	 */
 	public void chunkifyFile(String filePath, int repDegree) throws IOException, NoSuchAlgorithmException {
 		// file handling
@@ -262,7 +262,8 @@ public class PeerMethods implements PeerInterface {
 	}
 
 	/**
-	 * Build file from chunks.
+	 * Restores file from all the temporary chunks in the temp folder, and puts the
+	 *  restored file in a restored folder, on sucess deletes all the temporary chunks
 	 */
 	public void dechunkyFile(String filePath) {
 		FileInfo file = Peer.storage.getFileInfoByFilePath(filePath);
@@ -292,7 +293,9 @@ public class PeerMethods implements PeerInterface {
 	}
 
 	/**
-	 * Store chunk in peer.
+	 * Receives fileID, chunk number ,the number of wanted copies in the system for the chunk to backup, and, for each one of the 
+	 *  copies, uses chord to get the Node where it should be stored and sends a PUTCHUNK message, checks reply for errors,
+	 *  and on sucess increments the current number of copies in the system
 	 */
 	public void backupChunk(String fileId, int chunkNo, int repDegree, byte[] body, FileInfo file)
 			throws NoSuchAlgorithmException, IOException {
@@ -301,18 +304,17 @@ public class PeerMethods implements PeerInterface {
 
 			byte[] msg = MessageBuilder.getPutchunkMessage(fileId, chunkNo, body, i);
 			try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {
-				/* Send PUTCHUNK message */
 				socket.write(msg);
 
 				String fromServer;
 				if ((fromServer = socket.readLine()) != null) {
 					if (fromServer.equals("SUCCESS")) {
 						// If Node receives a sucess as answer we increment the chunk current
-						// Replication Degree on the System.
+						// number of copies on the System
 						file.getChunkByNo(chunkNo).incrementCurrRepDegree();
 					}
 					if (fromServer.equals("ERROR")) {
-						// If error message is received it means the system couldn't store the file in the system.
+						// If error message is received it means the system couldn't store the file in the system
 						System.out.print("ERROR: Peer couldn't store chunk.");
 					}
 				} else {
@@ -324,6 +326,40 @@ public class PeerMethods implements PeerInterface {
 		}
 	}
 
+	static public boolean backupChunk(String fileId, int chunkNo, int copyNo, byte[] body) throws NoSuchAlgorithmException, IOException {
+		NodeReference receiverNode = getNode(fileId, chunkNo, copyNo);
+
+		byte[] msg = MessageBuilder.getPutchunkMessage(fileId, chunkNo, body, copyNo);
+		try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {
+			socket.write(msg);
+
+			String fromServer;
+			if ((fromServer = socket.readLine()) != null) {
+				if (fromServer.equals("SUCCESS")) {
+					return true;
+				}
+				if (fromServer.equals("ERROR")) {
+					// If error message is received it means the system couldn't store the file in the system
+					System.out.print("ERROR: Peer couldn't store chunk.");
+					return false;
+				}
+			} else {
+				System.out.println("ERROR: Backup answer was empty.");
+				return false;
+			}
+		} catch (SSLManagerException e) {
+			System.out.println("Exception thrown: " + e.getMessage());
+			return false;
+		}
+		return false;
+	}
+
+	/**
+	 * Receives the PUTCHUNK message that was inteed for himself and builts a DELEGATE 
+	 *  message that it sends to its sucessor, on sucess updates the ChunkInfo on Storage
+	 *  to hold the information that the chunk was delegated and who stored it, and returns true,
+	 *  on error returns false
+	 */
 	public static boolean delegateChunk(byte[] chunk) {
 		NodeReference successor = Peer.chordNode.successor;
 
@@ -343,7 +379,6 @@ public class PeerMethods implements PeerInterface {
 		}
     	
 		try (SSLSocketStream socket = new SSLSocketStream(successor.ip, successor.port)) {
-			/* Send PUTCHUNK message */
 			socket.write(msg);
 
 			String fromServer;
@@ -372,22 +407,74 @@ public class PeerMethods implements PeerInterface {
 		return false;
   }
 
+  /**
+	 * Receives the chunk contents, the fileID, the Chunkno and Copy number that was inteed for himself and builts a DELEGATE 
+	 *  message that it sends to its sucessor, on sucess updates the ChunkInfo on Storage
+	 *  to hold the information that the chunk was delegated and who stored it, and returns true,
+	 *  on error returns false
+	 */
+	public static boolean delegateChunk(byte[] chunk, String fileId, int chunkNo, int copyNo) {
+		NodeReference successor = Peer.chordNode.successor;
+
+		byte[] body = chunk;
+		byte[] msg = null;
+		try {
+			msg = MessageBuilder.getDelegateMessage(fileId, chunkNo, copyNo, body);
+		} catch (IOException e) {
+			System.out.println("Exception thrown: " + e.getMessage());
+		}
+    	
+		try (SSLSocketStream socket = new SSLSocketStream(successor.ip, successor.port)) {
+			socket.write(msg);
+
+			String fromServer;
+			if ((fromServer = socket.readLine()) != null) {
+
+			
+			if (fromServer.equals("SUCCESS")) {
+				// If Node receives a sucess we add in our storage that we delegated that chunk
+				ChunkInfo delegatedChunkInfo = new ChunkInfo(chunkNo, fileId, 0, body.length);
+				delegatedChunkInfo.delegate(successor);
+				Peer.storage.addStoredChunk(delegatedChunkInfo);
+				return true;
+				
+			}
+			if (fromServer.equals("ERROR")) {
+				System.out.print("ERROR: Peer couldn't store chunk.");
+				return false;
+			}
+			} else {
+			System.out.println("ERROR: Backup answer was empty.");
+			}
+		} catch (SSLManagerException e) {
+			System.out.println("Exception thrown: " + e.getMessage());
+		}
+		
+		return false;
+  }
+
+  /**
+   * Receives a chunk content and checks if there is enough space available to fit it, if yes 
+   *  calls the Storage method saveFile and returns true, if there isn't enough space, prints a message
+   *  and returns false
+   */
   public static boolean saveChunk(byte[] chunk) {
-	System.out.println("CURRENT MAX STORAGTE: " + Peer.storage.getMaxStorage());
+	System.out.println("CURRENT MAX STORAGE: " + Peer.storage.getMaxStorage());
 	System.out.println("CURRENT STORAGE: " + Peer.storage.getCurrStorage());
     long diff = (Peer.storage.getCurrStorage() + chunk.length) - Peer.storage.getMaxStorage();
     if (diff > 0 && Peer.storage.getMaxStorage() != -1) {
-      // if (!manageStorage(diff, false)){
       System.out.println("No Space Available");
       return false;
-      // }
     }
     Peer.storage.saveFile(chunk);
     return true;
   }
 
   /**
-   * Get chunk from peer.
+   * Receives the information about the chunk that it needs to send, and checks its storage for it,
+   *  checks if chunk was delegated, if not retrieves the chunk from storage and returns it as byte[],
+   *  if it was delegated, gets the Node that stored from the Storage and sends it a GETCHUNK message,
+   *  receives the chunk contents as answer and returns it as byte[]
    */
   public static byte[] retrieveChunk(String fileId, int chunkNo, int copyNo) throws IOException {
     byte[] chunk = null;
@@ -406,7 +493,6 @@ public class PeerMethods implements PeerInterface {
 				ByteArrayOutputStream message = new ByteArrayOutputStream();
 				message.write(fromClient, 0, msgSize);
 				if (new String(fromClient).equals("ERROR")) {
-					// FODEU ????
 				} else {
 					chunk = fromClient;
 				}
@@ -427,7 +513,10 @@ public class PeerMethods implements PeerInterface {
   }
 
   /**
-   * Delete chunk.
+   * Receives the information about the chunk that it needs to delete, and checks its storage for it,
+   *  checks if chunk was delegated, if not deletes the chunk from storage and from the system,
+   *  if it was delegated, gets the Node that stored from the Storage and sends it a DELETE message,
+   *  returns true if successfully deleted, and false if otherwise
    */
   public static boolean deleteSavedChunk(String fileId, int chunkNo) throws IOException{
 		String key = fileId + "_" + chunkNo;
@@ -466,7 +555,8 @@ public class PeerMethods implements PeerInterface {
   }
 
   /**
-   * Reclaim storage space.
+   * Sets max storage for storing files , and if new maximum is over the current ocuppied storage
+   *  calls manageStorage method that will solve that issue
    */
   public void spaceReclaim(long newMaxStorage) throws IOException {
     newMaxStorage *= 1000;
@@ -483,7 +573,9 @@ public class PeerMethods implements PeerInterface {
   }
 
   /**
-   * Delete chunks to free space.
+   * Receives the needed bytes to free from storage and checks storage for saved chunks to delete,
+   *  on deletion of a chunk, removes it from local system and delegates it to its sucessor,
+   *  on enough deletions returns true
    */
   public static boolean manageStorage(long spaceToFree, boolean mustDelete) throws IOException {
     // If Max Storage is -1 it means it is unlimited
@@ -504,19 +596,23 @@ public class PeerMethods implements PeerInterface {
         }
       }
       if (mustDelete) {
-        File chunkFile = new File("Peers/" + "dir" + Peer.id + "/" + toRemove.getChunkID());
+        File chunkFile = new File("Peers/" + "dir" + Peer.id + "/" + toRemove.getChunkID() + "_" + toRemove.getCopyNo());
         Peer.storage.removeFromCurrStorage(chunkFile.length());
-        freedSpace += chunkFile.length();
-        Peer.storage.removeStoredChunk(toRemove);
-        // TODO: INFORM NODES THAT FILE WAS DELETED ???
+		freedSpace += chunkFile.length();
+		byte[] fileData = Files.readAllBytes(chunkFile.toPath());
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		body.write(fileData);
+		delegateChunk(body.toByteArray(), toRemove.getFileID(), toRemove.getNo(), toRemove.getCopyNo());
         chunkFile.delete();
       } else if (maxRepdegreeDif > 0) {
-        File chunkFile = new File("Peers/" + "dir" + Peer.id + "/" + toRemove);
+        File chunkFile = new File("Peers/" + "dir" + Peer.id + "/" + toRemove.getChunkID() + "_" + toRemove.getCopyNo());
         Peer.storage.removeFromCurrStorage(chunkFile.length());
         freedSpace += chunkFile.length();
-        Peer.storage.removeStoredChunk(toRemove);
-        // TODO: INFORM NODES THAT FILE WAS DELETED ???
-        chunkFile.delete();
+        freedSpace += chunkFile.length();
+		byte[] fileData = Files.readAllBytes(chunkFile.toPath());
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		body.write(fileData);
+		delegateChunk(body.toByteArray(), toRemove.getFileID(), toRemove.getNo(), toRemove.getCopyNo());
       } else {
         return false;
       }
@@ -524,22 +620,38 @@ public class PeerMethods implements PeerInterface {
     return true;
   }
 
-  public void giveChunks(NodeReference n) throws NoSuchAlgorithmException {
-	for (ChunkInfo chunk : Peer.storage.getChunksStored()) {
-		//getHash(fileId, chunkNo, );
-		
+  /**
+   * 
+   */
+  static public void giveChunks(NodeReference n) throws NoSuchAlgorithmException { 
+	List<ChunkInfo> toRemove = new ArrayList<>();
+	for (int i = 0;  i < Peer.storage.getChunksStored().size(); i++) {
+		ChunkInfo chunk = Peer.storage.getChunksStored().get(i);
 		BigInteger chunkHash = getHash(chunk.getFileID(), chunk.getNo(), chunk.getCopyNo());
 
 		if(!Peer.chordNode.clockwiseInclusiveBetween(chunkHash, n.id, Peer.chordNode.id)) {
-			// backup protocal no NodeReference n
-			// remover de mim próprio
+			// backup protocol no NodeReference n
+			try {
+				File chunkFile = new File("Peers/" + "dir" + Peer.id + "/" + chunk.getChunkID() + "_" + chunk.getCopyNo());
+				Peer.storage.removeFromCurrStorage(chunkFile.length());
+				byte[] fileData = Files.readAllBytes(chunkFile.toPath());
+				ByteArrayOutputStream body = new ByteArrayOutputStream();
+				body.write(fileData);
+				backupChunk(chunk.getFileID(), chunk.getNo(), chunk.getCopyNo(), body.toByteArray());
+				chunkFile.delete();
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			toRemove.add(chunk);
 		}
-
+	  }
+	  Peer.storage.getChunksStored().removeAll(toRemove);
+	  Peer.pool.schedule(() -> {Peer.givingChunks = false;}, 2, TimeUnit.SECONDS);
 	}
-  }
 
   /**
-   * Print storage state.
+   * Print storage state and Chord state when requested
    */
   public void printState() {
     System.out.println("Files Backed Up:");
@@ -560,7 +672,11 @@ public class PeerMethods implements PeerInterface {
     return;
   }
 
-  private BigInteger getHash(String fileId, int chunkNo, int copyNo)
+  /**
+   * Receives the File ID, chunk number and copy number to build a Hash using SHA-1, truncates it,
+   *  and returns it for Chord use
+   */
+  static private BigInteger getHash(String fileId, int chunkNo, int copyNo)
       throws NoSuchAlgorithmException {
     String unhashedId = fileId + "_" + chunkNo + "_" + copyNo;
     MessageDigest md = MessageDigest.getInstance("SHA-1");

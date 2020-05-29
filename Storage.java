@@ -9,8 +9,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Storage class, holds the max Storage and  current storage of a Peer,
+ *  the list of FileInfos for the files that the Peer put into the system,
+ *  and the list of ChunkInfos the Peer was tasked of storing.
+ */
 public class Storage {
-  private long maxStorage;
+  private long maxStorage; // -1 equals to unlimited 
   private long currStorage;
 
   private List<FileInfo> filesBacked;
@@ -18,7 +23,7 @@ public class Storage {
   private int peerId;
 
   /**
-   * Storage constructor.
+   * Storage constructor, receives only Peer ID, sets maxStorage to unlimited
    */
   public Storage(int peerId) {
     this.peerId = peerId;
@@ -62,12 +67,20 @@ public class Storage {
     this.currStorage = currStorage;
   }
 
-  public void addToCurrStorage(long storage) {
-    this.currStorage = currStorage + storage;
+  /**
+   * Adds bytes to the current Storage of the Peer
+   * @param bytes
+   */
+  public void addToCurrStorage(long bytes) {
+    this.currStorage = currStorage + bytes;
   }
 
-  public void removeFromCurrStorage(long storage) {
-    this.currStorage = currStorage - storage;
+  /**
+   * Removes bytes to the current Storage of the Peer
+   * @param bytes
+   */
+  public void removeFromCurrStorage(long bytes) {
+    this.currStorage = currStorage - bytes;
   }
 
   /**
@@ -87,7 +100,7 @@ public class Storage {
   }
 
   /**
-   * Get file.
+   * Get FileInfo from given File ID
    */
   public FileInfo getFileInfo(String fileID) {
     try {
@@ -103,7 +116,7 @@ public class Storage {
   }
 
   /**
-   * Get file.
+   * Get FileInfo given by filepath
    */
   public FileInfo getFileInfoByFilePath(String filePath) {
     Optional<FileInfo> result = filesBacked.stream().filter(file -> file.getPath()
@@ -112,31 +125,48 @@ public class Storage {
   }
 
   /**
-   * Get stored chunk.
+   * Get stored chunk ChunkInfo from file ID and chunk Number
    */
   public ChunkInfo getStoredChunkInfo(String fileID, int chunkNo) {
     Optional<ChunkInfo> result = chunksStored.stream().filter(ch -> ((ch.getFileID().equals(fileID)) && (ch.getNo() == chunkNo))).findFirst();
     return result.orElse(null);
   }
 
+  /**
+   * Add file to the list of backed up files
+   * @param file
+   */
   public void addBackedFile(FileInfo file) {
     filesBacked.add(file);
   }
 
+  /**
+   * Add ChunkInfo to list of stored chunks
+   */
   public void addStoredChunk(ChunkInfo chunk) {
     chunksStored.add(chunk);
   }
 
+  /**
+   * Remove file from the list of backed up files
+   * @param file
+   */
   public void removeBackedFile(FileInfo file) {
     filesBacked.remove(file);
   }
 
+  /**
+   * Remove chunk from list of stored chunks
+   * @param chunk
+   */
   public void removeStoredChunk(ChunkInfo chunk) {
     chunksStored.remove(chunk);
   }
 
   /**
-   * Save file.
+   * Receives a chunk contents and removes header from it and stores it in
+   *  Peers/dir<PeerID>/<fileID>_<ChunkNo>_<CopyNo> directory, creating it 
+   *  if needed
    */
   public void saveFile(byte[] chunk) {
     String path = "Peers/dir" + (peerId);
@@ -164,7 +194,7 @@ public class Storage {
   }
 
   /**
-   * Patter match.
+   * Simple method to see if pattern matches the input used to find CRLF
    */
   public static boolean isMatch(byte[] pattern, byte[] input, int pos) {
     for (int i = 0; i < pattern.length; i++) {
@@ -176,7 +206,7 @@ public class Storage {
   }
 
   /**
-   * Split.
+   * Simple method to split chunk contents removing the header
    */
   public static List<byte[]> split(byte[] input) {
     byte[] pattern = "\r\n\r\n".getBytes();
@@ -195,7 +225,8 @@ public class Storage {
   }
 
   /**
-   * Restore chunk.
+   * Saves the temporary restored chunks into Peers/dir<PeerID>/temp/<FileID> directory,
+   *  creating it if needed
    */
   public void restoreChunk(byte[] chunk) {
     String chunkTxt = new String(chunk);

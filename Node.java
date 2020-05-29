@@ -147,7 +147,15 @@ public class Node {
   public void notify(NodeReference n) {
     if (this.predecessor == null || clockwiseExclusiveBetween(n.id, this.predecessor.id, this.id)) {
       this.predecessor = n;
-      //Peer.giveChunks(n);
+      try {
+        if(!Peer.givingChunks) {
+          Peer.givingChunks = true;
+          Peer.giveChunks(n);
+        }
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+      }
+     
     }
   }
 

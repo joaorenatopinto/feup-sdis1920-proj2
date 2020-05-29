@@ -12,7 +12,6 @@ public class ClientInterface {
     if (args.length == 3 && (args[1].equalsIgnoreCase("DELETE") || args[1].equalsIgnoreCase("RESTORE") || args[1].equalsIgnoreCase("RECLAIM"))
         || args.length == 4 && args[1].equalsIgnoreCase("BACKUP")
         || args.length == 2 && args[1].equalsIgnoreCase("STATE")) {
-      System.out.println("Aizz.");
     } else {
       System.err.println("Usage: java ClientInterface <PeerID>  <Protocol> :");
       System.err.println("   Backup protocol:  Backup <File_Path> <Replication_Degree>");
