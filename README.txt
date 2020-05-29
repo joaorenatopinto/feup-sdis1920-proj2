@@ -37,17 +37,17 @@ SDIS: PROJECT 2 - Distributed Backup Service for The Internet
     --> Backup Protocol
 
     ClientInterface <peer_id> BACKUP <file_path> <desired_replication_degree>
-        E.g.:  ClientInterface 1 BACKUP C:\Users\profsdis\Documents\sdis.pdf 2
+        E.g.:  ClientInterface 1 BACKUP test/souto.html 2
 
     --> Restore Protocol
 
     ClientInterface <peer_id> RESTORE <file_path>
-        E.g.: ClientInterface 1 RESTORE C:\Users\profsdis\Documents\sdis.pdf
+        E.g.: ClientInterface 1 RESTORE test/souto.html
 
     --> Delete Protocol
 
     ClientInterface <peer_id> DELETE <file_path>
-        E.g.:  ClientInterface 1 DELETE C:\Users\profsdis\Documents\sdis.pdf
+        E.g.:  ClientInterface 1 DELETE test/souto.html
 
     --> Reclaim Protocol
 
