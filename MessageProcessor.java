@@ -108,8 +108,12 @@ public class MessageProcessor implements Runnable {
           fileID = msgParts[2];
           chunkNo = Integer.parseInt(msgParts[3]);
           // Delete chunk
-          if (Peer.deleteSavedChunk(fileID, chunkNo)) {
-            return "SUCCESS".getBytes();
+          try {
+            if (Peer.deleteSavedChunk(fileID, chunkNo)) {
+              return "SUCCESS".getBytes();
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
           }
           return "ERROR".getBytes();
         default:
