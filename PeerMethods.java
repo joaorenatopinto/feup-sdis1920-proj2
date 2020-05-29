@@ -50,7 +50,7 @@ public class PeerMethods implements PeerInterface {
 	}
 
 	/**
-	 * Delete file from network.
+	 * Delete file from the system
 	 */
 	public void delete(String path) {
 		Peer.pool.execute(() -> {
@@ -63,7 +63,9 @@ public class PeerMethods implements PeerInterface {
 	}
 
 	/**
-	 * Restore file.
+	 * Receives file path of the File that we want to restore, and checks in Storage for its FileInfo,
+	 *  if found, initiates the restore protocol for each Chunk that composes the File. On sucess of all 
+	 *  chunks reconstructs the file
 	 */
 	public void restoreFile(String filePath) {
 		FileInfo file = Peer.storage.getFileInfoByFilePath(filePath);
@@ -87,11 +89,14 @@ public class PeerMethods implements PeerInterface {
 				e.printStackTrace();
 			}
 		}
+		// reconstructing the file
 		dechunkyFile(filePath);
 	}
 
 	/**
-	 * Delete file.
+	 * Receives file path of the File that we want to delete, and checks in Storage for its FileInfo,
+	 *  if found, initiates the delete protocol for each Chunk that composes the File. After that 
+	 *  deletes the FileInfo from Storage
 	 */
 	public void deleteFile(String filePath) throws IOException {
 		FileInfo file = Peer.storage.getFileInfoByFilePath(filePath);
@@ -128,7 +133,9 @@ public class PeerMethods implements PeerInterface {
 	}
 
 	/**
-	 * Return contents of chunk of file.
+	 * Receives fileID, chunk number and the number of copies in the system for the wanted chunk and, for each one of the 
+	 *  copies, uses chord to get the Node that should have them and sends a GETCHUNK message, checks reply for errors,
+	 *  and on sucess breaks the loop, and returns the chunk content in byte[] form
 	 */
 	public byte[] restoreChunk(String fileId, int chunkNo, int repDegree) throws IOException, NoSuchAlgorithmException {
 		byte[] chunk = null;
@@ -138,7 +145,7 @@ public class PeerMethods implements PeerInterface {
 			NodeReference receiverNode = getNode(fileId, chunkNo, i);
 			byte[] msg = MessageBuilder.getGetchunkMessage(fileId, chunkNo, i);
 
-			try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {
+			try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {		
 				/* Send GETCHUNK message */
 				socket.write(msg);
 
@@ -178,7 +185,9 @@ public class PeerMethods implements PeerInterface {
 	}
 
 	/**
-	 * Delete chunk from storage.
+	 *  Receives fileID, chunk number and the number of copies in the system for the desired chunk and, for each one of the 
+	 *   copies, uses chord to get the Node that should have them and sends a DELETE message, checks reply for errors,
+	 *   and on sucess of deletion of all copies returns true
 	 */
 	public boolean deleteChunk(String fileId, int chunkNo, int repDegree) throws IOException, NoSuchAlgorithmException {
 
@@ -208,10 +217,6 @@ public class PeerMethods implements PeerInterface {
 			}
 		}
 		return true;
-	}
-
-	public void shutdown() {
-		Peer.shutdown = true;
 	}
 
 	public void findSuccessorTest(BigInteger id) throws NoSuchAlgorithmException {

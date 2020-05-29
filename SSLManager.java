@@ -354,7 +354,6 @@ public abstract class SSLManager {
 
             case NEED_TASK:
                 //Run all the tasks
-                //TODO maybe make this concurrent with threads
                 Runnable task;
                 while ((task = engine.getDelegatedTask()) != null) {
                     new Thread(task).start();

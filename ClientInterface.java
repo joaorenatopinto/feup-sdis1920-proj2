@@ -1,5 +1,3 @@
-
-import java.math.BigInteger;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -50,12 +48,6 @@ public class ClientInterface {
           break;
         case "STATE":
           interfaceStub.printState();
-          break;
-        case "SHUTDOWN":
-          interfaceStub.shutdown();
-          break;
-        case "FINDSUCCESSOR":
-          interfaceStub.findSuccessorTest(new BigInteger(args[2]));
           break;
         default:
           break;
