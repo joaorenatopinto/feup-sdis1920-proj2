@@ -14,6 +14,7 @@ public class ChordHandler implements Runnable {
   @Override
   public void run() {
     try {
+      System.out.println("Chord Handler running");
       chordNode.checkSuccessor();
       chordNode.checkPredecessor();
       chordNode.stabilize();

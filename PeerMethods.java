@@ -146,6 +146,7 @@ public class PeerMethods implements PeerInterface {
 		/* For each owner of a copy of the chunk */
 		for (int i = 0; i < repDegree; i++) {
 			NodeReference receiverNode = getNode(fileId, chunkNo, i);
+			if(receiverNode==null) continue;
 			byte[] msg = MessageBuilder.getGetchunkMessage(fileId, chunkNo, i);
 
 			try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {		
@@ -196,6 +197,7 @@ public class PeerMethods implements PeerInterface {
 
 		for (int i = 0; i < repDegree; i++) {
 			NodeReference receiverNode = getNode(fileId, chunkNo, i);
+			if(receiverNode==null) continue;
 
 			byte[] msg = MessageBuilder.getDeleteMessage(fileId, chunkNo);
 
@@ -301,6 +303,7 @@ public class PeerMethods implements PeerInterface {
 			throws NoSuchAlgorithmException, IOException {
 		for (int i = 0; i < repDegree; i++) {
 			NodeReference receiverNode = getNode(fileId, chunkNo, i);
+			if(receiverNode==null) { i--; continue; }
 
 			byte[] msg = MessageBuilder.getPutchunkMessage(fileId, chunkNo, body, i);
 			try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {
@@ -328,6 +331,7 @@ public class PeerMethods implements PeerInterface {
 
 	static public boolean backupChunk(String fileId, int chunkNo, int copyNo, byte[] body) throws NoSuchAlgorithmException, IOException {
 		NodeReference receiverNode = getNode(fileId, chunkNo, copyNo);
+		if(receiverNode == null) return false;
 
 		byte[] msg = MessageBuilder.getPutchunkMessage(fileId, chunkNo, body, copyNo);
 		try (SSLSocketStream socket = new SSLSocketStream(receiverNode.ip, receiverNode.port)) {
@@ -622,7 +626,9 @@ public class PeerMethods implements PeerInterface {
   }
 
   /**
-   * 
+   * Given an entry of a new Node into the Chord Ring, this method checks the storage to see if there are any
+   * chunks that belong to the newly added Node. In other words, it checks if the chunk ID isnt between the
+   * new predecessor and the node. If it isn't, it means the chunk actually belongs to the new predecessor
    */
   static public void giveChunks(NodeReference n) throws NoSuchAlgorithmException { 
 	List<ChunkInfo> toRemove = new ArrayList<>();

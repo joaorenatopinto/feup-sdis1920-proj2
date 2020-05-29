@@ -15,7 +15,7 @@ public class Node {
   private static int M = 32;
 
   /**
-   * Node constructor.
+   * Node constructor. Calculates its own hash and initializes fingertable
    */
   public Node(String ip, int port, Peer peer) throws NoSuchAlgorithmException {
     this.ip = ip;
@@ -36,7 +36,7 @@ public class Node {
   }
 
   /**
-   * Create circle.
+   * Create circle. First node in new chord ring should run this method
    */
   public void create() {
     this.predecessor = null;
@@ -48,7 +48,8 @@ public class Node {
   }
 
   /**
-   * Join circle.
+   * Join circle. Node joining a chord ring asks its reference, the node he knows already takes part of the chord ring,
+   * and asks it fo ind its successor. After this, builds the finger table
    */
   public void join(String ip, int port) throws NoSuchAlgorithmException {
     System.out.println("JOINER ID: " + this.id);
@@ -57,8 +58,7 @@ public class Node {
 
     fingerTable[0] = this.successor;
     for (int i = 1; i < fingerTable.length; i++) {
-      BigInteger fingerId = (this.id.add(new BigInteger("2").pow(i)))
-          .mod(new BigInteger("2").pow(M));
+      BigInteger fingerId = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
       if (clockwiseInclusiveBetween(fingerId, this.id, this.successor.id)) {
         fingerTable[i] = this.successor;
       } else {
@@ -104,7 +104,8 @@ public class Node {
   }
 
   /**
-   * Closest preceding node.
+   * Checks the finger table for the closest node to the given ID. If we don't know, the table is wrong or
+   * needs updating, we return our sucessor for a linear search
    */
   public NodeReference closestPrecedingNode(BigInteger id) {
     for (int i = M - 1; i > 0; i--) {
@@ -115,24 +116,20 @@ public class Node {
     }
     // return this;
     return this.successor;
-    /* assim, qd n se sabe ou a finger table está mal / desactualizada, manda-se
-       para o sucessor para pesquisa linear. no entanto, n está assim no paper */
   }
 
   /**
-   * Stabilize circle.
+   * Stabilize circle. This asks our sucessor for its predecessor and checks if the returned predecessor should 
+   * be our sucessor
    */
   public void stabilize() throws NoSuchAlgorithmException {
-    // System.out.println("Before get successor predecessor");
     NodeReference x = getSuccessorPredecessor();
 
     if (x != null && clockwiseExclusiveBetween(x.id, this.id, this.successor.id)) {
       this.successor = x;
       this.fingerTable[0] = this.successor;
     }
-    // System.out.println("Before notify");
     this.successor.notify(this.ownReference);
-    // System.out.println("After notify");
   }
 
   public NodeReference getSuccessorPredecessor() throws NoSuchAlgorithmException {
@@ -140,7 +137,9 @@ public class Node {
   }
 
   /**
-   * Notify circle.
+   * When node is notified it checks if the notifier should be its predecessor. if so, also gives
+   * the chunks it belongs to them but were stored in this node before the new predecessor entry to the 
+   * Chord Ring
    */
   public void notify(NodeReference n) {
     if (this.predecessor == null || clockwiseExclusiveBetween(n.id, this.predecessor.id, this.id)) {
@@ -158,14 +157,11 @@ public class Node {
   }
 
   /**
-   * Fix circle.
+   * Updates finger tables entries. Finds the successors of each entry
    */
   public void fixFingers() throws NoSuchAlgorithmException {
-    // dar fix a todos de uma só vez para não termos que estar a chamar tantas
-    // vezes. pelo menos para já (testar localmente) dá jeito
     for (int i = M - 1; i >= 1; i--) {
-      BigInteger fingerId = (this.id.add(new BigInteger("2").pow(i)))
-          .mod(new BigInteger("2").pow(M));
+      BigInteger fingerId = (this.id.add(new BigInteger("2").pow(i))).mod(new BigInteger("2").pow(M));
       fingerTable[i] = findSuccessor(fingerId);
     }
   }
