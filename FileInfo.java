@@ -37,7 +37,7 @@ public class FileInfo {
       e.printStackTrace();
     }
 
-    this.chunks = Collections.synchronizedList(new ArrayList<ChunkInfo>());
+    this.chunks = Collections.synchronizedList(new ArrayList<>());
   }
 
   /**
