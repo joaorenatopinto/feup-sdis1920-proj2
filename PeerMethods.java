@@ -165,7 +165,7 @@ public class PeerMethods implements PeerInterface {
 						}
 					}
 				}
-			} catch (IOException e) {
+			} catch (SSLManagerException e) {
 				System.out.println("Exception thrown: " + e.getMessage());
 			}
 		}
@@ -198,7 +198,7 @@ public class PeerMethods implements PeerInterface {
 						continue;
 					}
 				}
-			} catch (IOException e) {
+			} catch (SSLManagerException e) {
 				System.out.println("Exception thrown: " + e.getMessage());
 			}
 		}
@@ -308,7 +308,7 @@ public class PeerMethods implements PeerInterface {
 				} else {
 					System.out.println("ERROR: Backup answer was empty.");
 				}
-			} catch (IOException e) {
+			} catch (SSLManagerException e) {
 				System.out.println("Exception thrown: " + e.getMessage());
 			}
 		}
@@ -356,7 +356,7 @@ public class PeerMethods implements PeerInterface {
 			} else {
 			System.out.println("ERROR: Backup answer was empty.");
 			}
-		} catch (IOException e) {
+		} catch (SSLManagerException e) {
 			System.out.println("Exception thrown: " + e.getMessage());
 		}
 		
@@ -402,7 +402,7 @@ public class PeerMethods implements PeerInterface {
 					chunk = fromClient;
 				}
 			}
-		} catch (IOException e) {
+		} catch (SSLManagerException e) {
 			System.out.println("Exception thrown: " + e.getMessage());
 		}
 	}
@@ -420,12 +420,10 @@ public class PeerMethods implements PeerInterface {
   /**
    * Delete chunk.
    */
-  public static boolean deleteSavedChunk(String fileId, int chunkNo) {
+  public static boolean deleteSavedChunk(String fileId, int chunkNo) throws IOException{
 		String key = fileId + "_" + chunkNo;
 		ChunkInfo chunk = Peer.storage.getStoredChunkInfo(fileId, chunkNo);
 		if (chunk != null) {
-			//TODO CHECK IF DELEGATED AND SEND A DELETE TO RESPECTIVE NODE
-
 			if(chunk.getDelegated()){
 				NodeReference node = chunk.getReceiver();
 			try (SSLSocketStream socket = new SSLSocketStream(node.ip, node.port)) {
@@ -443,7 +441,7 @@ public class PeerMethods implements PeerInterface {
 						return true;
 					}
 				}
-			} catch (IOException e) {
+			} catch (SSLManagerException e) {
 				System.out.println("Exception thrown: " + e.getMessage());
 			}
 				} else {
