@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 
 public abstract class SSLManager {
     static boolean DEBUG = false;
+    static String[] CIPHERS = {"TLS_RSA_WITH_AES_256_CBC_SHA","TLS_RSA_WITH_AES_128_CBC_SHA"};
 
     private SSLContext context;
     private SSLSession session;
@@ -71,6 +72,22 @@ public abstract class SSLManager {
         this.inNetData = ByteBuffer.allocate(session.getPacketBufferSize());
     }
 
+    private void initEngine(boolean client) {
+        this.engine.setUseClientMode(client);
+
+        if (!client) {
+            this.engine.setNeedClientAuth(true);
+        }
+
+        this.engine.setEnabledCipherSuites(CIPHERS);
+
+        //Get the sslSession from the engine
+        this.session = engine.getSession();
+
+        this.initEngineBuffers();
+        this.init = true;
+    }
+
     protected void init(AsynchronousSocketChannel channel,InetSocketAddress address, SSLContext context, boolean client) throws SSLManagerException {
         this.context = context;
         this.channel = channel;
@@ -79,17 +96,8 @@ public abstract class SSLManager {
         try {
             //Create the SSLEngine and set client mode
             this.engine = this.context.createSSLEngine(address.getHostName(),address.getPort());
-            this.engine.setUseClientMode(client);
+            this.initEngine(client);
 
-            if (!client) {
-                this.engine.setNeedClientAuth(true);
-            }
-
-            //Get the sslSession from the engine
-            this.session = engine.getSession();
-
-            this.initEngineBuffers();
-            this.init = true;
         }
         catch (Exception e) {
             throw new SSLManagerException(e.getMessage());
@@ -104,13 +112,7 @@ public abstract class SSLManager {
         try {
             //Create the SSLEngine and set client mode
             this.engine = this.context.createSSLEngine();
-            this.engine.setUseClientMode(client);
-
-            //Get the sslSession from the engine
-            this.session = engine.getSession();
-
-            this.initEngineBuffers();
-            this.init = true;
+            this.initEngine(client);
         }
         catch (Exception e) {
             throw new SSLManagerException(e.getMessage());
