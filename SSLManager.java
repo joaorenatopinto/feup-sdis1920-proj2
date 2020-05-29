@@ -397,6 +397,7 @@ public abstract class SSLManager {
     }
 
     public boolean close() throws SSLManagerException, IOException {
+        /*
         if (!engine.isOutboundDone()) {
             engine.closeOutbound();
 
@@ -416,6 +417,8 @@ public abstract class SSLManager {
                 return false;
             }
         }
+
+         */
 
         channel.close();
         return true;

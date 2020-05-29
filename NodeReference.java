@@ -47,7 +47,7 @@ public class NodeReference {
       } else {
         System.out.println("ERROR: Chord findSuccessor answer was empty.");
       }
-    } catch (SSLManagerException | IOException e) {
+    } catch (SSLManagerException e) {
       e.printStackTrace();
     }
     return null;
@@ -60,7 +60,7 @@ public class NodeReference {
     try (SSLSocketStream socket = new SSLSocketStream(ip, port)) {
       socket.close();
       socket.write(("CHORD NOTIFY " + n.ip + " " + n.port).getBytes());
-    } catch (IOException | SSLManagerException e) {
+    } catch (SSLManagerException e) {
       e.printStackTrace();
     }
   }
@@ -96,7 +96,7 @@ public class NodeReference {
       } else {
         System.out.println("ERROR: Chord getPredecessor answer was empty.");
       }
-    } catch (IOException | SSLManagerException e) {
+    } catch (SSLManagerException e) {
       e.printStackTrace();
     }
     return null;

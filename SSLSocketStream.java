@@ -23,7 +23,7 @@ public class SSLSocketStream implements java.lang.AutoCloseable {
     return socket.readln();
   }
 
-  public void close() throws IOException, SSLManagerException {
+  public void close() {
     //socket.close();
   }
 }
