@@ -31,7 +31,8 @@ public class Peer extends PeerMethods {
   /**
    * When initiated a Peer sets his keystore and trust stores properties and can 
    *  either create a chord ring or join a already existing one.
-   * Also creates his ThreadPoolExecetor and schedules Chord Synchronyzation
+   * Also creates his ThreadPoolExecetor, schedules Chord Synchronyzation, and initiates PeerThread
+   *  that is always waiting for messages
    * Note: If Peer creates the ChordRing it also initiates rmiregistry
    */
   public void run(String[] args) throws NoSuchAlgorithmException {

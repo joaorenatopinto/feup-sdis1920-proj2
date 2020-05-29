@@ -1,10 +1,13 @@
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 
-
+/**
+ * Class that is ran by a Node when it receives a message, receives the Socket, 
+ * reads the message and handles it, using PeerMethods or Node methods
+ * and replies
+ */
 public class MessageProcessor implements Runnable {
 
   SSLServerInterface server;
@@ -14,6 +17,9 @@ public class MessageProcessor implements Runnable {
     server.handshake();
   }
 
+  /**
+   *  Reads message , delegates the processing and waits for the processing to reply
+   */
   @Override
   public void run() {
     byte[] fromClient = new byte[65000];
@@ -28,11 +34,11 @@ public class MessageProcessor implements Runnable {
           server.write("Bye.".getBytes());
           //server.waitClose();
         } else {
-          byte[] meh = processMessage(message.toByteArray());
-          if (meh != null) {
+          byte[] answer = processMessage(message.toByteArray());
+          if (answer != null) {
             // String answer = new String(meh);
             // System.out.println("YOU: " + answer);
-            server.write(meh);
+            server.write(answer);
           }
           //server.waitClose();
         }
@@ -43,7 +49,8 @@ public class MessageProcessor implements Runnable {
   }
 
   /**
-   * Process message.
+   * Processes message, reads header, and sorts them by CHORD or PROTOCOL messages
+   * and uses the specific function to process, returning the reply
    */
   public byte[] processMessage(byte[] msg) throws NoSuchAlgorithmException {
     String[] msgParts = new String(msg).split("\\s+|\n");
@@ -61,19 +68,19 @@ public class MessageProcessor implements Runnable {
           node = Peer.chordNode.predecessor;
           break;
         case "DELEGATE":
-          // Save file
+          // Save file in Peer Storage
           if (Peer.saveChunk(msg)) {
             return "SUCCESS".getBytes();
-          }
+          } // IF saveChunk returns false it means that node doens't have space so 
+          // it delegates the chunk to a sucessor
           if(Peer.delegateChunk(msg)){
             return "SUCCESS".getBytes();
-          }
+          } // if delegation isn't possible return error
           return "ERROR".getBytes();
         default:
           break;
       }
     } else if (msgParts[0].equals("PROTOCOL")) {
-     //System.out.println(msgParts[0]+ " " + msgParts[1] + " "+ msgParts[2] + " "+ msgParts[3] +" "+ msgParts[4]);
       String fileID;
       int chunkNo;
       int copyNo;
@@ -82,11 +89,12 @@ public class MessageProcessor implements Runnable {
           // Save file
           if (Peer.saveChunk(msg)) {
             return "SUCCESS".getBytes();
-          }
+          }// IF saveChunk returns false it means that node doens't have space so 
+          // it delegates the chunk to a sucessor
           if(Peer.delegateChunk(msg)){
-            System.out.println("!!!!! DELEGATE !!!!!");
+            System.out.println("Delegating chunk");
             return "SUCCESS".getBytes();
-          }
+          } // if delegation isn't possible return error
           return "ERROR".getBytes();
         case "GETCHUNK":
           // Get the information of the needed chunk

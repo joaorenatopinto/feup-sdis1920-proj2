@@ -14,9 +14,14 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * Utility class that has all the methods that the Peer needs
+ *  to utilize the protocols: Backup, Restore, Deletion of files 
+ *  in the system, get State of Peer in the System (storage and chord information)
+ */
 public class PeerMethods implements PeerInterface {
-	public static int CHUNK_SIZE = 16000;
-	public static double FILE_MAX_SIZE = 1000 * 1000000;
+	public static int CHUNK_SIZE = 16000; // Max size of the chunks
+	public static double FILE_MAX_SIZE = 1000 * 1000000; // limit of file size for the system to handle
 
 	/**
 	 * Divide file into chunks and store them.
@@ -302,7 +307,7 @@ public class PeerMethods implements PeerInterface {
 						file.getChunkByNo(chunkNo).incrementCurrRepDegree();
 					}
 					if (fromServer.equals("ERROR")) {
-						// TODO: IF ERROR AND HANDLE IT NEEDS A RETRY WITH SOME OTHER ALGORITHM
+						// If error message is received it means the system couldn't store the file in the system.
 						System.out.print("ERROR: Peer couldn't store chunk.");
 					}
 				} else {
@@ -318,7 +323,6 @@ public class PeerMethods implements PeerInterface {
 		NodeReference successor = Peer.chordNode.successor;
 
 		// BREAK chunk into message
-
 		String chunkTxt = new String(chunk);
 		String[] chunkpieces = chunkTxt.split("\\s+|\n");
 		String fileId = chunkpieces[2];
