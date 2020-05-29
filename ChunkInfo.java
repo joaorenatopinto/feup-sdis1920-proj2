@@ -1,3 +1,10 @@
+/**
+ * FileInfo class holds all the information about a chunk: the file id that it belongs to,
+ *  its number, that represents its index when the file was split,  the desired number of
+ *  copies in the system (wantedRepDegree), the current ammount (currRepDegree) started as 0,  its size in bytes, and a boolean that represents
+ *  if the file is currently kept in storage or was delegated to sucessor, if it was delegated,
+ *  stores the NodeReference of the Node that is storing it
+ */
 public class ChunkInfo {
   private int no;
   private String fileID;
@@ -9,7 +16,8 @@ public class ChunkInfo {
   private NodeReference receiver;
 
   /**
-   * Chunk information.
+   * Constructor that receives Chunk number, File Id, wanted number of copies and its size,
+   *  and sets delegated as false
    */
   public ChunkInfo(int no, String fileID, int repDegree, int size) {
     this.no = no;
@@ -19,6 +27,10 @@ public class ChunkInfo {
     this.delegated = false;
   }
 
+  /**
+   * Constructor that receives Chunk number, File Id, wanted number of copies and its size,
+   *  and sets delegated as false, also sets its copyNo
+   */
   public ChunkInfo(int no, String fileID, int repDegree, int size, int copyNo) {
     this.no = no;
     this.fileID = fileID;
@@ -30,7 +42,7 @@ public class ChunkInfo {
 
 
   /**
-   * Return current replication degree.
+   * Return current Number of copies in the System
    */
   public int getCurrRepDegree() {
     return currRepDegree;
@@ -89,28 +101,43 @@ public class ChunkInfo {
     this.currRepDegree -= 1;
   }
 
+  /**
+   *  Sets delegated as true and stores the NodeReference to 
+   *   the node that stored the chunk
+   */
   public void delegate(NodeReference receiver){
     this.delegated = true;
     this.receiver = receiver;
   }
 
   /**
-   * @return the receiver
+   * Return the NodeReference to the node that has this chunk
    */
   public NodeReference getReceiver() {
     return receiver;
   }
 
+  /**
+   * Return the delegated boolean value
+   */
   public boolean getDelegated(){
     return delegated;
   }
 
+  /**
+   * Function that gives the ChunkInfo information in string format, used to show the state of the
+   * chunk in the system when requested
+   */
   @Override
   public String toString() {
     return "  FileID: " + fileID + "\n  ChunkNr: " + no + "\n  Size: " + (size / 1000)
         + "\n  Current Replication Degree: " + currRepDegree;
   }
-
+  
+  /**
+   * 
+   * Return the File Id of the file the chunk belongs too
+   */
   public String getChunkID() {
     return fileID + "_" + no;
   }

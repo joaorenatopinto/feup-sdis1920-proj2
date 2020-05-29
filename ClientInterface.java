@@ -5,11 +5,12 @@ import java.rmi.registry.Registry;
 
 public class ClientInterface {
   /**
-   * Main.
+   * ClientInterface communicates with RMI with the Node and gives it the wanted protocol to perform
    *
    * @param args interface arguments
    */
   public static void main(String[] args) {
+    // Arguments check
     if (args.length == 3 && (args[1].equalsIgnoreCase("DELETE") || args[1].equalsIgnoreCase("RESTORE") || args[1].equalsIgnoreCase("RECLAIM"))
         || args.length == 4 && args[1].equalsIgnoreCase("BACKUP")
         || args.length == 2 && args[1].equalsIgnoreCase("STATE")) {

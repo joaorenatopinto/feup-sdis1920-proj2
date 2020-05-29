@@ -18,11 +18,9 @@ public class Peer extends PeerMethods {
   public static int id;
 
   /**
-   * Main.
+   * When started, a Peer initiates his storage, his ID and calls run function
    */
   public static void main(String[] args) throws NoSuchAlgorithmException {
-
-    // java Peer 9 localhost 8009 JOIN localhost 8003
 
     Peer peer = new Peer();
     peer.run(args);
@@ -31,12 +29,16 @@ public class Peer extends PeerMethods {
   }
 
   /**
-   * Run.
+   * When initiated a Peer sets his keystore and trust stores properties and can 
+   *  either create a chord ring or join a already existing one.
+   * Also creates his ThreadPoolExecetor and schedules Chord Synchronyzation
+   * Note: If Peer creates the ChordRing it also initiates rmiregistry
    */
   public void run(String[] args) throws NoSuchAlgorithmException {
     System.setProperty("javax.net.ssl.trustStore", "truststore");
     System.setProperty("javax.net.ssl.trustStorePassword", "123456");
 
+    // Arguments check
     if (!((args.length == 4 && args[3].equalsIgnoreCase("CREATE"))
         || (args.length == 6 && args[3].equalsIgnoreCase("JOIN")))) {
       System.err.println("Usage: Peer <PeerID> <IpAddress> <PortNumber> <ChordOption> :");
@@ -52,7 +54,7 @@ public class Peer extends PeerMethods {
       String chordOption = args[3];
 
       chordNode = new Node(ipAddress, portNumber, this);
-
+      // If
       if (chordOption.equalsIgnoreCase("CREATE")) {
         try {
           LocateRegistry.createRegistry(1099);
@@ -76,6 +78,7 @@ public class Peer extends PeerMethods {
       System.exit(-1);
     }
 
+    // Binding Peer to RMI for ClientInterface use
     try {
       PeerMethods peer = new PeerMethods();
       PeerInterface interfaceStub = (PeerInterface) UnicastRemoteObject.exportObject(peer, 0);
@@ -85,7 +88,7 @@ public class Peer extends PeerMethods {
       e.getStackTrace();
       return;
     }
-    // System.err.println("Peer ready");
+    // We start a Thread Pool with 50 available Threads
     pool = Executors.newScheduledThreadPool(50);
 
     // Create task where stabilizes and notifies chord and gives it to ThreadPool to

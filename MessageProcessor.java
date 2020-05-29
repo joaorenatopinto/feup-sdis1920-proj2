@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
-
 import javax.net.ssl.SSLSocket;
 
 public class MessageProcessor implements Runnable {

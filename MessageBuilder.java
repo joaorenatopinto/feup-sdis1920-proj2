@@ -1,7 +1,9 @@
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+/**
+ * Utility class that builds the messages ready to send via the sockets in byte[] format
+ */
 public class MessageBuilder {
   /**
    * Return byte[] of PUTCHUNK message.
