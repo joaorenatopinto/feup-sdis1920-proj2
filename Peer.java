@@ -15,6 +15,7 @@ public class Peer extends PeerMethods {
   public static ScheduledExecutorService pool;
   public static Storage storage;
   public static int id;
+  public static boolean givingChunks = false;
 
   /**
    * When started, a Peer initiates his storage, his ID and calls run function
